@@ -1,6 +1,8 @@
 package model
 
-import "errors"
+import (
+	"errors"
+)
 
 // Restaurant errors
 var (
