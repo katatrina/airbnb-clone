@@ -32,17 +32,19 @@ func runServe(cmd *cobra.Command, args []string) error {
 
 	pool, err := pgxpool.New(ctx, os.Getenv("DATABASE_URL"))
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to connect to database: %w", err)
 	}
+	defer pool.Close()
 
 	store := postgres.NewStore(pool)
-
 	restaurantSvc := service.NewRestaurantService(store)
-
 	restaurantHandler := httpserver.NewRestaurantHandler(restaurantSvc)
-
 	server := httpserver.NewServer(restaurantHandler)
 
 	log.Printf("Starting server on :%d", port)
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), server.Router())
+	if err = http.ListenAndServe(fmt.Sprintf(":%d", port), server.Router()); err != nil {
+		return fmt.Errorf("server failed: %w", err)
+	}
+
+	return nil
 }

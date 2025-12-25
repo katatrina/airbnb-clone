@@ -2,34 +2,37 @@ package http
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+	"github.com/katatrina/food-delivery/services/restaurant/internal/model"
 	"github.com/katatrina/food-delivery/services/restaurant/internal/service"
 )
 
-type RestaurantHandler struct {
-	restaurantSvc *service.RestaurantService
+type RestaurantService interface {
+	CreateRestaurant(ctx context.Context, cmd service.CreateRestaurantCmd) (*model.Restaurant, error)
 }
 
-func NewRestaurantHandler(restaurantSvc *service.RestaurantService) *RestaurantHandler {
+type RestaurantHandler struct {
+	restaurantSvc RestaurantService
+}
+
+func NewRestaurantHandler(restaurantSvc RestaurantService) *RestaurantHandler {
 	return &RestaurantHandler{restaurantSvc: restaurantSvc}
 }
 
-func (h *RestaurantHandler) CreateRestaurant(w http.ResponseWriter, r *http.Request) {
+func (h *RestaurantHandler) CreateRestaurant(ctx *gin.Context) {
 	var cmd service.CreateRestaurantCmd
-	if err := json.NewDecoder(r.Body).Decode(&cmd); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err := ctx.ShouldBindJSON(&cmd); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	restaurant, err := h.restaurantSvc.CreateRestaurant(context.Background(), cmd)
+	restaurant, err := h.restaurantSvc.CreateRestaurant(ctx.Request.Context(), cmd)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(restaurant)
+	ctx.JSON(http.StatusCreated, restaurant)
 }

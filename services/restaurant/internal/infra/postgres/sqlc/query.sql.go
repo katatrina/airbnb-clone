@@ -10,12 +10,12 @@ import (
 	"time"
 )
 
-const creatRestaurant = `-- name: CreatRestaurant :exec
+const createRestaurant = `-- name: CreateRestaurant :exec
 INSERT INTO restaurants (id, name, address, phone, email, is_active, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 `
 
-type CreatRestaurantParams struct {
+type CreateRestaurantParams struct {
 	ID        string
 	Name      string
 	Address   string
@@ -26,8 +26,8 @@ type CreatRestaurantParams struct {
 	UpdatedAt time.Time
 }
 
-func (q *Queries) CreatRestaurant(ctx context.Context, arg CreatRestaurantParams) error {
-	_, err := q.db.Exec(ctx, creatRestaurant,
+func (q *Queries) CreateRestaurant(ctx context.Context, arg CreateRestaurantParams) error {
+	_, err := q.db.Exec(ctx, createRestaurant,
 		arg.ID,
 		arg.Name,
 		arg.Address,

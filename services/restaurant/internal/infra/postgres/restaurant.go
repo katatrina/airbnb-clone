@@ -8,7 +8,7 @@ import (
 )
 
 func (s *Store) CreateRestaurant(ctx context.Context, restaurant *model.Restaurant) error {
-	arg := sqlc.CreatRestaurantParams{
+	arg := sqlc.CreateRestaurantParams{
 		ID:        restaurant.ID,
 		Name:      restaurant.Name,
 		Address:   restaurant.Address,
@@ -19,5 +19,5 @@ func (s *Store) CreateRestaurant(ctx context.Context, restaurant *model.Restaura
 		UpdatedAt: restaurant.UpdatedAt,
 	}
 
-	return s.db.CreatRestaurant(ctx, arg)
+	return s.db.CreateRestaurant(ctx, arg)
 }

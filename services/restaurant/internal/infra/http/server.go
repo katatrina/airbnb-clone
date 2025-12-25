@@ -3,18 +3,17 @@ package http
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
-	router            *chi.Mux
+	router            *gin.Engine
 	RestaurantHandler *RestaurantHandler
 }
 
 func NewServer(restaurantHandler *RestaurantHandler) *Server {
 	s := &Server{
-		router:            chi.NewRouter(),
+		router:            gin.Default(),
 		RestaurantHandler: restaurantHandler,
 	}
 
@@ -23,17 +22,14 @@ func NewServer(restaurantHandler *RestaurantHandler) *Server {
 }
 
 func (s *Server) setupRoutes() {
-	s.router.Use(middleware.Logger)
-	s.router.Use(middleware.Recoverer)
-
-	s.router.Get("/health", s.healthCheck)
-	s.router.Post("/restaurants", s.RestaurantHandler.CreateRestaurant)
+	s.router.GET("/health", s.healthCheck)
+	s.router.POST("/restaurants", s.RestaurantHandler.CreateRestaurant)
 }
 
-func (s *Server) healthCheck(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("OK"))
+func (s *Server) healthCheck(ctx *gin.Context) {
+	ctx.String(http.StatusOK, "OK")
 }
 
-func (s *Server) Router() *chi.Mux {
+func (s *Server) Router() *gin.Engine {
 	return s.router
 }
