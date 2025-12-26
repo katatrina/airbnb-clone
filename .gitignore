@@ -4,3 +4,6 @@
 # Claude
 CLAUDE.md
 .claude/
+
+# Secrets
+.env
