@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/katatrina/airbnb-clone/services/user/config"
+	"github.com/katatrina/airbnb-clone/services/user/internal/database"
 	"github.com/katatrina/airbnb-clone/services/user/internal/handler"
 )
 
@@ -14,6 +17,17 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	dbPool, err := database.NewPostgresPool(ctx, cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("failed to connect to db: %v", err)
+	}
+	defer dbPool.Close()
+
+	log.Println("connected to db")
 
 	h := handler.NewHandler()
 	http.HandleFunc("/health", h.Health)
