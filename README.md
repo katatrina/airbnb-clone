@@ -22,6 +22,11 @@ git clone [https://github.com/katatrina/airbnb-clone.git](https://github.com/kat
 cd airbnb-clone
 ```
 
+Setup configuration
+```bash
+cp .env.example .env
+```
+
 Start infrastructure (Postgres, Redis)
 ```bash
 make docker-up
