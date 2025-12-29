@@ -3,13 +3,16 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Handler struct {
+	db *pgxpool.Pool
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(db *pgxpool.Pool) *Handler {
+	return &Handler{db: db}
 }
 
 func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {

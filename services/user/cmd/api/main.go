@@ -21,16 +21,17 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	dbPool, err := database.NewPostgresPool(ctx, cfg.DatabaseURL)
+	db, err := database.NewPostgresPool(ctx, cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("failed to connect to db: %v", err)
 	}
-	defer dbPool.Close()
+	defer db.Close()
 
 	log.Println("connected to db")
 
-	h := handler.NewHandler()
+	h := handler.NewHandler(db)
 	http.HandleFunc("/health", h.Health)
+	http.HandleFunc("/auth/register", h.Register)
 
 	log.Printf("User service starting on :%s", cfg.ServerPort)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", cfg.ServerPort), nil))
