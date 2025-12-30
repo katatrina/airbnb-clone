@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -9,6 +8,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
@@ -58,35 +58,29 @@ func (r RegisterRequest) Validate() error {
 	return nil
 }
 
-func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
+func (h *Handler) Register(c *gin.Context) {
 	var req RegisterRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	userID, err := uuid.NewV7()
 	if err != nil {
 		log.Printf("failed to generate user ID: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Printf("failed to generate user password hash: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -96,19 +90,17 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		Email:        req.Email,
 		PasswordHash: string(passwordHash),
 	}
-	err = h.db.QueryRow(r.Context(), "INSERT INTO users (id, display_name, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING created_at, updated_at", user.ID, user.DisplayName, user.Email, user.PasswordHash).
+	err = h.db.QueryRow(c.Request.Context(), "INSERT INTO users (id, display_name, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING created_at, updated_at", user.ID, user.DisplayName, user.Email, user.PasswordHash).
 		Scan(&user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			w.WriteHeader(http.StatusConflict)
-			json.NewEncoder(w).Encode(map[string]string{"error": "email already in use"})
+			c.JSON(http.StatusConflict, gin.H{"error": "email already in use"})
 			return
 		}
 
 		log.Printf("failed to create user: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"error": "internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -118,6 +110,5 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		Email:       user.Email,
 		CreatedAt:   user.CreatedAt,
 	}
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(&resp)
+	c.JSON(http.StatusCreated, resp)
 }
