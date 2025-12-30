@@ -10,6 +10,7 @@ import (
 	"github.com/katatrina/airbnb-clone/services/user/config"
 	"github.com/katatrina/airbnb-clone/services/user/internal/database"
 	"github.com/katatrina/airbnb-clone/services/user/internal/handler"
+	"github.com/katatrina/airbnb-clone/services/user/internal/middleware"
 )
 
 func main() {
@@ -34,6 +35,8 @@ func main() {
 	router.GET("/health", h.Health)
 	router.POST("/auth/register", h.Register)
 	router.POST("/auth/login", h.Login)
+
+	router.GET("/users/me", middleware.AuthMiddleware(cfg.JWTSecret), h.GetMe)
 
 	log.Fatal(router.Run(fmt.Sprintf(":%s", cfg.ServerPort)))
 }

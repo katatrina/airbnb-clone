@@ -1,0 +1,24 @@
+package handler
+
+import (
+	"log"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/katatrina/airbnb-clone/services/user/internal/constant"
+)
+
+func (h *Handler) GetMe(c *gin.Context) {
+	userID := c.MustGet(constant.UserIDKey).(string)
+
+	var user User
+	err := h.db.QueryRow(c.Request.Context(), "SELECT id, email, display_name, created_at, updated_at FROM users WHERE id=$1", userID).
+		Scan(&user.ID, &user.Email, &user.DisplayName, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		log.Printf("failed to get user profile by id: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
