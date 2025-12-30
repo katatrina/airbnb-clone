@@ -29,10 +29,11 @@ func main() {
 
 	log.Println("connected to db")
 
-	h := handler.NewHandler(db)
+	h := handler.NewHandler(db, cfg)
 	router := gin.Default()
 	router.GET("/health", h.Health)
 	router.POST("/auth/register", h.Register)
+	router.POST("/auth/login", h.Login)
 
 	log.Fatal(router.Run(fmt.Sprintf(":%s", cfg.ServerPort)))
 }
