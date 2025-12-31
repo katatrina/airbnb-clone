@@ -32,11 +32,12 @@ func main() {
 
 	h := handler.NewHandler(db, cfg)
 	router := gin.Default()
-	router.GET("/health", h.Health)
-	router.POST("/auth/register", h.Register)
-	router.POST("/auth/login", h.Login)
+	v1 := router.Group("/api/v1")
+	v1.GET("/health", h.Health)
+	v1.POST("/auth/register", h.Register)
+	v1.POST("/auth/login", h.Login)
 
-	router.GET("/users/me", middleware.AuthMiddleware(cfg.JWTSecret), h.GetMe)
+	v1.GET("/users/me", middleware.AuthMiddleware(cfg.JWTSecret), h.GetMe)
 
 	log.Fatal(router.Run(fmt.Sprintf(":%s", cfg.ServerPort)))
 }
