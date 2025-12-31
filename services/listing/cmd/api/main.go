@@ -31,7 +31,9 @@ func main() {
 
 	h := handler.NewHandler(db, cfg)
 	router := gin.Default()
-	router.GET("/health", h.Health)
+	v1 := router.Group("/api/v1")
+	v1.GET("/health", h.Health)
+	v1.GET("/provinces", h.ListProvinces)
 
 	log.Fatal(router.Run(fmt.Sprintf(":%s", cfg.ServerPort)))
 }
