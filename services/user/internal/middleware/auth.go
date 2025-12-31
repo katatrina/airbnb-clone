@@ -10,7 +10,7 @@ import (
 	"github.com/katatrina/airbnb-clone/services/user/internal/constant"
 )
 
-func AuthMiddleware(secretKet string) gin.HandlerFunc {
+func AuthMiddleware(secretKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -19,14 +19,14 @@ func AuthMiddleware(secretKet string) gin.HandlerFunc {
 		}
 
 		fields := strings.Split(authHeader, " ")
-		if len(fields) != 2 && fields[0] != "Bearer" {
+		if len(fields) != 2 || fields[0] != "Bearer" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authorization header format must be Bearer {token}"})
 			return
 		}
 		tokenStr := fields[1]
 
 		token, err := jwt.ParseWithClaims(tokenStr, &jwt.RegisteredClaims{}, func(token *jwt.Token) (any, error) {
-			return []byte(secretKet), nil
+			return []byte(secretKey), nil
 		}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
