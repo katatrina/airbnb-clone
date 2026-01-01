@@ -4,19 +4,19 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/katatrina/airbnb-clone/services/listing/config"
+	"github.com/katatrina/airbnb-clone/services/listing/internal/db"
 )
 
 type Handler struct {
-	db  *pgxpool.Pool
-	cfg *config.Config
+	listingRepo *db.ListingRepository
+	cfg         *config.Config
 }
 
-func NewHandler(db *pgxpool.Pool, cfg *config.Config) *Handler {
+func NewHandler(listingRepo *db.ListingRepository, cfg *config.Config) *Handler {
 	return &Handler{
-		db:  db,
-		cfg: cfg,
+		listingRepo: listingRepo,
+		cfg:         cfg,
 	}
 }
 

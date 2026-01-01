@@ -9,5 +9,8 @@ migrate-up:
 migrate-down:
 	migrate -path migrations -database "postgres://root:secret@localhost:5432/airbnb?sslmode=disable&x-migrations-table=listing_schema_migrations" down
 
+sqlc:
+	sqlc generate
+
 server:
 	go run ./cmd/api
