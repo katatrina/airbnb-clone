@@ -6,6 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.11.0
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/spf13/viper v1.21.0
+	github.com/katatrina/airbnb-clone/pkg v0.0.0
 )
 
 require (
@@ -53,3 +54,5 @@ require (
 	golang.org/x/tools v0.39.0 // indirect
 	google.golang.org/protobuf v1.36.9 // indirect
 )
+
+replace github.com/katatrina/airbnb-clone/pkg => ../../pkg
