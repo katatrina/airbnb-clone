@@ -8,9 +8,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/katatrina/airbnb-clone/services/user/config"
-	"github.com/katatrina/airbnb-clone/services/user/internal/database"
 	"github.com/katatrina/airbnb-clone/services/user/internal/handler"
 	"github.com/katatrina/airbnb-clone/services/user/internal/middleware"
+	"github.com/katatrina/airbnb-clone/services/user/internal/repository"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	db, err := database.NewPostgresPool(ctx, cfg.DatabaseURL)
+	db, err := repository.NewUserRepository(ctx, cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("failed to connect to db: %v", err)
 	}
@@ -30,7 +30,7 @@ func main() {
 
 	log.Println("connected to db")
 
-	h := handler.NewHandler(db, cfg)
+	h := handler.NewUserHandler(db, cfg)
 	router := gin.Default()
 	v1 := router.Group("/api/v1")
 	v1.GET("/health", h.Health)

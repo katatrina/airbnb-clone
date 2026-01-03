@@ -31,8 +31,6 @@ func BadRequestWithErrors(c *gin.Context, code int, message string, errors []Fie
 }
 
 func Unauthorized(c *gin.Context, message string) {
-	// 4010 = Authentication required
-	// 4011 = Token invalid or expired
 	c.JSON(http.StatusUnauthorized, New().Error(4010, message).Build())
 }
 
@@ -46,12 +44,11 @@ func NotFound(c *gin.Context, message string) {
 
 func Conflict(c *gin.Context, code int, message string) {
 	c.JSON(http.StatusConflict, New().Error(code, message).Build())
-	http.NewFileTransport()
 }
 
 func InternalError(c *gin.Context) {
-	// Never send internal server error detail to client
-	c.JSON(http.StatusInternalServerError, New().Error(5000, "Internal server error").Build())
+	// Never send internal error detail to client
+	c.JSON(http.StatusInternalServerError, New().Error(CodeInternalError, "Internal server error").Build())
 }
 
 // ============ Paginated response ============

@@ -11,7 +11,7 @@ import (
 	"github.com/katatrina/airbnb-clone/services/user/internal/constant"
 )
 
-func (h *Handler) GetMe(c *gin.Context) {
+func (h *UserHandler) GetMe(c *gin.Context) {
 	userID := c.MustGet(constant.UserIDKey).(string)
 
 	var user User
