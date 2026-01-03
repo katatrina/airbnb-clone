@@ -6,23 +6,27 @@ import (
 	"net/http"
 	"regexp"
 	"time"
-	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 
-type RegisterResponse struct {
-	ID          string    `json:"id"`
-	DisplayName string    `json:"displayName"`
-	Email       string    `json:"email"`
-	CreatedAt   time.Time `json:"createdAt"`
+type RegisterRequest struct {
+	DisplayName string `json:"displayName"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+}
+
+type UserResponse struct {
+	ID          string `json:"id"`
+	DisplayName string `json:"displayName"`
+	Email       string `json:"email"`
+	CreateAt    int64  `json:"createAt"`
 }
 
 func (h *UserHandler) Register(c *gin.Context) {
@@ -32,7 +36,36 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	resp := RegisterResponse{
+	// Gọi xuống service
+	h.userService.CreateUser(c.Request.Context())
+
+	if err := req.Validate(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	//
+	//user := User{
+	//	ID:           userID.String(),
+	//	DisplayName:  req.DisplayName,
+	//	Email:        req.Email,
+	//	PasswordHash: string(hashedPassword),
+	//}
+	//err = h.db.QueryRow(c.Request.Context(), "INSERT INTO users (id, display_name, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING created_at, updated_at", user.ID, user.DisplayName, user.Email, user.PasswordHash).
+	//	Scan(&user.CreatedAt, &user.UpdatedAt)
+	//if err != nil {
+	//	var pgErr *pgconn.PgError
+	//	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+	//		c.JSON(http.StatusConflict, gin.H{"error": "email already in use"})
+	//		return
+	//	}
+	//
+	//	log.Printf("failed to create user: %v", err)
+	//	c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+	//	return
+	//}
+
+	resp := UserResponse{
 		ID:          user.ID,
 		DisplayName: user.DisplayName,
 		Email:       user.Email,
