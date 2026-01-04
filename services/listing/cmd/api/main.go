@@ -8,15 +8,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/katatrina/airbnb-clone/pkg/response"
 	"github.com/katatrina/airbnb-clone/services/listing/config"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/db"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/handler"
 )
 
 func main() {
-	fmt.Println(response.TestVal)
-
 	cfg, err := config.LoadConfig(".env")
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)

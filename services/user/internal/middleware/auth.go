@@ -1,46 +1,77 @@
+// Package middleware contains HTTP middleware functions.
+// Middleware runs before/after handlers and can:
+// - Authenticate requests
+// - Add logging
+// - Handle CORS
+// - Rate limit
+// etc.
 package middleware
 
 import (
-	"log"
-	"net/http"
+	"errors"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/katatrina/airbnb-clone/pkg/response"
+	"github.com/katatrina/airbnb-clone/pkg/token"
 	"github.com/katatrina/airbnb-clone/services/user/internal/constant"
 )
 
-func AuthMiddleware(secretKey string) gin.HandlerFunc {
+// AuthMiddleware validates tokens and extracts user ID.
+// It uses TokenMaker interface - doesn't know if it's JWT or Paseto
+//
+// Benefits of using TokenMaker:
+// 1. Middleware doesn't need jwt library import
+// 2. Can swap JWT for Paseto without changing middleware
+// 3. Easier to test - just mock TokenMaker
+//
+// Usage:
+//
+//	tokenMaker := token.NewJWTMaker(secret, expiry)
+//	router.GET("/users/me", middleware.AuthMiddleware(tokenMaker), handler.GetMe)
+func AuthMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Get Authorization header
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authorization header is required"})
+			response.Unauthorized(c, "Authorization header is required")
+			c.Abort()
 			return
 		}
 
-		fields := strings.Split(authHeader, " ")
-		if len(fields) != 2 || fields[0] != "Bearer" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authorization header format must be Bearer {token}"})
+		// Parse "Bearer <token>" format
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			response.Unauthorized(c, "Authorization header format must be: Bearer {token}")
+			c.Abort()
 			return
 		}
-		tokenStr := fields[1]
+		tokenString := parts[1]
 
-		token, err := jwt.ParseWithClaims(tokenStr, &jwt.RegisteredClaims{}, func(token *jwt.Token) (any, error) {
-			return []byte(secretKey), nil
-		}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
+		// Verify token using TokenMaker
+		// All the JWT complexity is hidden inside tokenMaker.VerifyToken()
+		// Middleware doesn't know or care if it's JWT, Paseto, or something else
+		claims, err := tokenMaker.VerifyToken(tokenString)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+			// we can check for specific token errors if we want different handling
+			switch {
+			case errors.Is(err, token.ErrTokenExpired):
+				// Could return a different message or status code for expired tokens
+				// e.g, to prompt client to refresh
+				response.Unauthorized(c, "Token has expired")
+			case errors.Is(err, token.ErrTokenInvalid):
+				response.Unauthorized(c, "Invalid token")
+			default:
+				response.Unauthorized(c, "Authentication failed")
+			}
+			c.Abort()
 			return
 		}
 
-		claims, ok := token.Claims.(*jwt.RegisteredClaims)
-		if !ok {
-			log.Printf("invalid token claims: %v", claims)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
-			return
-		}
+		// Set user ID in request context for downstream handlers
+		c.Set(constant.UserIDKey, claims.UserID)
 
-		c.Set(constant.UserIDKey, claims.Subject)
+		// Continue to the next handler
 		c.Next()
 	}
 }

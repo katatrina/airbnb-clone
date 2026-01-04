@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/katatrina/airbnb-clone/pkg/token"
 	"github.com/katatrina/airbnb-clone/services/user/config"
 	"github.com/katatrina/airbnb-clone/services/user/internal/handler"
 	"github.com/katatrina/airbnb-clone/services/user/internal/middleware"
@@ -18,7 +19,7 @@ import (
 func main() {
 	cfg, err := config.LoadConfig(".env")
 	if err != nil {
-		log.Fatalf("failed to load config: %v", err)
+		log.Fatalf("Failed to load config: %v", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -26,24 +27,42 @@ func main() {
 
 	db, err := pgxpool.New(ctx, cfg.DatabaseURL)
 	if err != nil {
-		log.Fatalf("failed to create db pool: %v", err)
+		log.Fatalf("Failed to create database pool: %v", err)
 	}
 	defer db.Close()
 
 	if err = db.Ping(ctx); err != nil {
-		log.Fatalf("failed to connect to db: %v", err)
+		log.Fatalf("Failed to ping database: %v", err)
+	}
+	log.Println("Connected to database successfully")
+
+	tokenMaker := token.NewJWTMaker(cfg.JWTSecret, cfg.JWTExpiry)
+	userRepo := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepo, tokenMaker)
+	userHandler := handler.NewUserHandler(userService)
+
+	router := gin.Default()
+
+	v1 := router.Group("/api/v1")
+	{
+		v1.GET("/health", userHandler.Health)
+
+		auth := v1.Group("/auth")
+		{
+			auth.POST("/register", userHandler.Register)
+			auth.POST("/login", userHandler.Login)
+		}
+
+		users := v1.Group("/users")
+		users.Use(middleware.AuthMiddleware(tokenMaker))
+		{
+			users.GET("/me", userHandler.GetMe)
+		}
 	}
 
-	userRepo := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepo)
-	userHandler := handler.NewUserHandler(userService, cfg)
-	router := gin.Default()
-	v1 := router.Group("/api/v1")
-	v1.GET("/health", userHandler.Health)
-	v1.POST("/auth/register", userHandler.Register)
-	v1.POST("/auth/login", userHandler.Login)
-
-	v1.GET("/users/me", middleware.AuthMiddleware(cfg.JWTSecret), userHandler.GetMe)
-
-	log.Fatal(router.Run(fmt.Sprintf(":%s", cfg.ServerPort)))
+	addr := fmt.Sprintf(":%s", cfg.ServerPort)
+	log.Printf("Starting server on :%s", addr)
+	if err = router.Run(addr); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }

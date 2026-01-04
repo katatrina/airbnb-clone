@@ -65,7 +65,7 @@ func (m *JWTMaker) CreateToken(userID string) (string, error) {
 		Subject: userID,
 
 		// ExpiresAt is when this token becomes invalid.
-		// After this time, VerifyToken will return ErrExpiredToken.
+		// After this time, VerifyToken will return ErrTokenExpired.
 		ExpiresAt: jwt.NewNumericDate(now.Add(m.expiry)),
 
 		// IssuedAt is when this token was created.
@@ -124,10 +124,10 @@ func (m *JWTMaker) VerifyToken(tokenString string) (*Claims, error) {
 		// Check if the error is specifically about expiration.
 		// jwt/v5 returns specific error types we can check.
 		if errors.Is(err, jwt.ErrTokenExpired) {
-			return nil, ErrExpiredToken
+			return nil, ErrTokenExpired
 		}
 		// For all other errors (invalid signature, malformed, etc.)
-		return nil, ErrInvalidToken
+		return nil, ErrTokenInvalid
 	}
 
 	// Extract the claims from the parsed token.
@@ -135,7 +135,7 @@ func (m *JWTMaker) VerifyToken(tokenString string) (*Claims, error) {
 	claims, ok := token.Claims.(*jwt.RegisteredClaims)
 	if !ok {
 		// This shouldn't happen if ParseWithClaims succeeded, but be defensive.
-		return nil, ErrInvalidToken
+		return nil, ErrTokenInvalid
 	}
 
 	// Convert JWT claims to our application's Claims struct.

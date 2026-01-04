@@ -2,31 +2,44 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
+	"github.com/katatrina/airbnb-clone/pkg/response"
 	"github.com/katatrina/airbnb-clone/services/user/internal/constant"
+	"github.com/katatrina/airbnb-clone/services/user/internal/model"
 )
 
+// GetMe returns the current authenticated user's profile.
 func (h *UserHandler) GetMe(c *gin.Context) {
 	userID := c.MustGet(constant.UserIDKey).(string)
 
-	var user User
-	err := h.db.QueryRow(c.Request.Context(), "SELECT id, email, display_name, created_at, updated_at FROM users WHERE id=$1", userID).
-		Scan(&user.ID, &user.Email, &user.DisplayName, &user.CreatedAt, &user.UpdatedAt)
+	user, err := h.userService.GetUserByID(c.Request.Context(), userID)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("userID %s not found", userID)})
+		switch {
+		case errors.Is(err, model.ErrUserNotFound):
+			// This shouldn't happen in normal flow because:
+			// 1. User logged in (JWT was issued)
+			// 2. JWT contains valid user ID
+			// 3. User should exist
+			//
+			// But it can happen if:
+			// - User was deleted after login
+			// - Database was reset
+			// - Token was issued for a non-existent user (bug)
+			response.NotFound(c, "User not found")
+			return
+		default:
+			log.Printf("[ERROR] GetMe failed for user %s: %s", userID, err)
+			response.InternalError(c)
 			return
 		}
-
-		log.Printf("failed to get user profile by id: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
-		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	response.OK(c, UserResponse{
+		ID:          user.ID,
+		DisplayName: user.DisplayName,
+		Email:       user.Email,
+		CreatedAt:   user.CreatedAt.Unix(),
+	})
 }

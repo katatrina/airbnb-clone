@@ -3,139 +3,77 @@ package handler
 import (
 	"errors"
 	"log"
-	"net/http"
-	"regexp"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/katatrina/airbnb-clone/pkg/response"
+	"github.com/katatrina/airbnb-clone/services/user/internal/model"
+	"github.com/katatrina/airbnb-clone/services/user/internal/service"
 )
-
-var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-
-type RegisterRequest struct {
-	DisplayName string `json:"displayName"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-}
-
-type UserResponse struct {
-	ID          string `json:"id"`
-	DisplayName string `json:"displayName"`
-	Email       string `json:"email"`
-	CreateAt    int64  `json:"createAt"`
-}
 
 func (h *UserHandler) Register(c *gin.Context) {
 	var req RegisterRequest
+
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		// TODO: Customize raw validation error message
+		response.BadRequest(c, response.CodeValidationFailed, err.Error())
 		return
 	}
 
-	// Gọi xuống service
-	h.userService.CreateUser(c.Request.Context())
-
-	if err := req.Validate(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	user, err := h.userService.CreateUser(c.Request.Context(), service.CreateUserParams{
+		DisplayName: req.DisplayName,
+		Email:       req.Email,
+		Password:    req.Password,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, model.ErrEmailAlreadyExists):
+			response.Conflict(c, response.CodeEmailExists, "Email already exists")
+			return
+		default:
+			// Unknown error = internal server error
+			// IMPORTANT: Log the actual error for debugging
+			// but don't expose it to the client (security risk)
+			log.Printf("[ERROR] Register failed: %v", err)
+			response.InternalError(c)
+			return
+		}
 	}
 
-	//
-	//user := User{
-	//	ID:           userID.String(),
-	//	DisplayName:  req.DisplayName,
-	//	Email:        req.Email,
-	//	PasswordHash: string(hashedPassword),
-	//}
-	//err = h.db.QueryRow(c.Request.Context(), "INSERT INTO users (id, display_name, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING created_at, updated_at", user.ID, user.DisplayName, user.Email, user.PasswordHash).
-	//	Scan(&user.CreatedAt, &user.UpdatedAt)
-	//if err != nil {
-	//	var pgErr *pgconn.PgError
-	//	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-	//		c.JSON(http.StatusConflict, gin.H{"error": "email already in use"})
-	//		return
-	//	}
-	//
-	//	log.Printf("failed to create user: %v", err)
-	//	c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
-	//	return
-	//}
-
-	resp := UserResponse{
+	response.Created(c, UserResponse{
 		ID:          user.ID,
 		DisplayName: user.DisplayName,
 		Email:       user.Email,
-		CreatedAt:   user.CreatedAt,
-	}
-	c.JSON(http.StatusCreated, resp)
-}
-
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type LoginResponse struct {
-	AccessToken string `json:"accessToken"`
+		CreatedAt:   user.CreatedAt.Unix(),
+	})
 }
 
 func (h *UserHandler) Login(c *gin.Context) {
 	var req LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		// TODO: Customize raw validation error message
+		response.BadRequest(c, response.CodeValidationFailed, err.Error())
 		return
 	}
 
-	var user User
-	err := h.db.QueryRow(c.Request.Context(), "SELECT id, display_name, email, password_hash, created_at, updated_at FROM users WHERE email=$1", req.Email).
-		Scan(&user.ID, &user.DisplayName, &user.Email, &user.PasswordHash, &user.CreatedAt, &user.UpdatedAt)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
-			return
-		}
-
-		log.Printf("failed to find user by email: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
-		return
-	}
-
-	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
-	if err != nil {
-		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid email or password"})
-			return
-		}
-
-		log.Printf("failed to compare hashed password: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
-		return
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
-		Issuer:    "airbnb-api",
-		Subject:   user.ID,
-		Audience:  jwt.ClaimStrings{"airbnb-client"},
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(h.cfg.JWTExpiry)),
-		NotBefore: jwt.NewNumericDate(time.Now()),
-		IssuedAt:  jwt.NewNumericDate(time.Now()),
-		ID:        uuid.NewString(),
+	result, err := h.userService.Login(c.Request.Context(), service.LoginParams{
+		Email:    req.Email,
+		Password: req.Password,
 	})
-
-	tokenStr, err := token.SignedString([]byte(h.cfg.JWTSecret))
 	if err != nil {
-		log.Printf("failed to generate jwt: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
-		return
+		switch {
+		case errors.Is(err, model.ErrInvalidCredentials):
+			response.Unauthorized(c, "Invalid email or password")
+			return
+
+		default:
+			log.Printf("[ERROR] Login failed: %v", err)
+			response.InternalError(c)
+			return
+		}
 	}
 
-	resp := LoginResponse{
-		AccessToken: tokenStr,
-	}
-	c.JSON(http.StatusOK, resp)
+	response.OK(c, LoginResponse{
+		AccessToken: result.AccessToken,
+	})
 }

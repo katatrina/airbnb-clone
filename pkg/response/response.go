@@ -1,3 +1,20 @@
+// Package response provides a standardized way to format API responses.
+// All endpoints should use this package to ensure consistent response structure.
+//
+// Response structure:
+//
+//	{
+//	  "success": true/false,
+//	  "code": 0,              // 0 for success, error code for failures
+//	  "message": "OK",        // Human-readable message
+//	  "data": {...},          // Payload (only for success)
+//	  "errors": [...],        // Field errors (only for validation failures)
+//	  "meta": {
+//	    "requestId": "...",   // For tracing/debugging
+//	    "timestamp": 123456,  // Server time
+//	    "pagination": {...}   // For list endpoints
+//	  }
+//	}
 package response
 
 import (
@@ -7,46 +24,80 @@ import (
 )
 
 // Response is the standard structure for all API responses.
+// Using a consistent structure makes it easier for frontend to handle responses.
 type Response struct {
-	Success bool `json:"success"` // Quickly know whether the request is successful or not, no need to check HTTP status code
+	// Success indicates whether the request was successful.
+	// Frontend can check this first before looking at other fields.
+	Success bool `json:"success"`
 
-	// Business error code, allowing coarse-grained (request-level) error handling
-	//
-	// 0 = success, non-zero = error
-	Code    int          `json:"code"`
-	Message string       `json:"message"`          // Human-readable message, used to debug or sometimes display for user
-	Data    any          `json:"data,omitempty"`   // Payload
-	Meta    *Meta        `json:"meta,omitempty"`   // Metadata about request/response, not business data
-	Errors  []FieldError `json:"errors,omitempty"` // Validation errors
+	// Code is a machine-readable error code.
+	// 0 = success, non-zero = specific error type.
+	// This allows frontend to handle errors programmatically.
+	Code int `json:"code"`
+
+	// Message is a human-readable description.
+	// Can be displayed to users or used for debugging.
+	Message string `json:"message"`
+
+	// Data contains the response payload.
+	// Only present for successful responses.
+	Data any `json:"data,omitempty"`
+
+	// Meta contains metadata about the request/response.
+	// Useful for debugging, tracing, and pagination.
+	Meta *Meta `json:"meta,omitempty"`
+
+	// Errors contains field-level validation errors.
+	// Only present when there are validation failures.
+	Errors []FieldError `json:"errors,omitempty"`
 }
 
+// FieldError represents a validation error for a specific field.
+// This allows frontend to highlight the exact form field that has an error.
 type FieldError struct {
-	Field string `json:"field"` // e.g. email, password, phone,...
-
-	// Machine-readable error code, SNAKE_CASE, for client mapping
-	//
-	// Allow fine-grained (field-level) error handling
-	Code    string `json:"code"`
-	Message string `json:"message"` // Human-readable validation error message
+	Field   string `json:"field"`   // e.g., "email", "password"
+	Code    string `json:"code"`    // e.g., "REQUIRED", "INVALID_FORMAT"
+	Message string `json:"message"` // e.g., "Email is required"
 }
 
+// Meta contains metadata about the response.
 type Meta struct {
-	RequestID  string      `json:"requestId"` // Quickly identify the request, help debugging (trace log) extremely fast, especially in production
-	Timestamp  int64       `json:"timestamp"` // Server time when response is created, with Unix universal timestamp, easy for frontend to parse
+	// RequestID is a unique identifier for this request.
+	// Use this to trace logs and debug issues in production.
+	RequestID string `json:"requestId"`
+
+	// Timestamp is when the response was generated (Unix seconds).
+	// Using Unix timestamp makes it easy for any frontend to parse.
+	Timestamp int64 `json:"timestamp"`
+
+	// Pagination contains pagination info for list endpoints.
 	Pagination *Pagination `json:"pagination,omitempty"`
 }
 
+// Pagination contains pagination metadata.
 type Pagination struct {
-	Page       int   `json:"page"`       // Current page
-	PerPage    int   `json:"perPage"`    // Number of items per page
-	Total      int64 `json:"total"`      // Total items (use int64 as it can be very large)
-	TotalPages int   `json:"totalPages"` // Total pages
+	Page       int   `json:"page"`       // Current page number (1-indexed)
+	PerPage    int   `json:"perPage"`    // Items per page
+	Total      int64 `json:"total"`      // Total number of items
+	TotalPages int   `json:"totalPages"` // Total number of pages
 }
 
+// ============================================================================
+// Builder Pattern
+// ============================================================================
+// We use the Builder pattern to construct responses.
+// This makes the code more readable and allows method chaining.
+//
+// Example:
+//   New().Success(data).WithPagination(1, 10, 100).Build()
+
+// Builder constructs a Response step by step.
 type Builder struct {
 	resp Response
 }
 
+// New creates a new response builder with default metadata.
+// Every response gets a unique request ID and timestamp automatically.
 func New() *Builder {
 	return &Builder{
 		resp: Response{
@@ -58,12 +109,14 @@ func New() *Builder {
 	}
 }
 
-// WithRequestID is used to set request ID from middleware (for tracing)
+// WithRequestID sets a custom request ID.
+// Use this when you have a request ID from middleware/tracing.
 func (b *Builder) WithRequestID(id string) *Builder {
 	b.resp.Meta.RequestID = id
 	return b
 }
 
+// Success marks the response as successful and sets the data.
 func (b *Builder) Success(data any) *Builder {
 	b.resp.Success = true
 	b.resp.Code = 0
@@ -72,6 +125,7 @@ func (b *Builder) Success(data any) *Builder {
 	return b
 }
 
+// Error marks the response as failed with an error code and message.
 func (b *Builder) Error(code int, message string) *Builder {
 	b.resp.Success = false
 	b.resp.Code = code
@@ -79,22 +133,32 @@ func (b *Builder) Error(code int, message string) *Builder {
 	return b
 }
 
+// WithErrors adds field-level validation errors.
 func (b *Builder) WithErrors(errors []FieldError) *Builder {
 	b.resp.Errors = errors
 	return b
 }
 
+// WithPagination adds pagination metadata.
+// TotalPages is calculated automatically from total and perPage.
 func (b *Builder) WithPagination(page, perPage int, total int64) *Builder {
-	// TODO: Explain pagination calculation logic here
+	// Calculate total pages using ceiling division
+	// Example: 25 items with 10 per page = 3 pages
+	totalPages := int(total) / perPage
+	if int(total)%perPage > 0 {
+		totalPages++
+	}
+
 	b.resp.Meta.Pagination = &Pagination{
 		Page:       page,
 		PerPage:    perPage,
 		Total:      total,
-		TotalPages: (int(total) + perPage - 1) / perPage,
+		TotalPages: totalPages,
 	}
 	return b
 }
 
+// Build returns the constructed Response.
 func (b *Builder) Build() Response {
 	return b.resp
 }

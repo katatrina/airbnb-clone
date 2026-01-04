@@ -15,6 +15,8 @@ type Config struct {
 	JWTExpiry   time.Duration `mapstructure:"JWT_EXPIRY"`
 }
 
+// Validate checks that all required configuration is present.
+// This is called after loading to fail fast if config is missing.
 func (c *Config) Validate() error {
 	if c.ServerPort == "" {
 		return errors.New("SERVER_PORT is required")
@@ -26,7 +28,7 @@ func (c *Config) Validate() error {
 		return errors.New("REDIS_URL is required")
 	}
 	if len(c.JWTSecret) < 32 {
-		return errors.New("JWT_SECRET must be at least 32 characters long (256 bits)")
+		return errors.New("JWT_SECRET must be at least 32 characters long")
 	}
 	if c.JWTExpiry <= 0 {
 		return errors.New("JWT_EXPIRY must be greater than 0")

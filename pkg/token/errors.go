@@ -10,20 +10,20 @@ import "errors"
 //
 //	claims, err := tokenMaker.VerifyToken(tokenString)
 //	if err != nil {
-//	    if errors.Is(err, token.ErrExpiredToken) {
+//	    if errors.Is(err, token.ErrTokenExpired) {
 //	        // Token was valid but has expired - maybe offer refresh
 //	    }
-//	    if errors.Is(err, token.ErrInvalidToken) {
+//	    if errors.Is(err, token.ErrTokenInvalid) {
 //	        // Token is malformed or signature is wrong
 //	    }
 //	}
 var (
-	// ErrInvalidToken is returned when the token is malformed, has an invalid
+	// ErrTokenInvalid is returned when the token is malformed, has an invalid
 	// signature, or cannot be parsed for any reason.
-	ErrInvalidToken = errors.New("token is invalid")
+	ErrTokenInvalid = errors.New("token is invalid")
 
-	// ErrExpiredToken is returned when the token was valid but has passed
-	// its expiration time. This is separate from ErrInvalidToken because
+	// ErrTokenExpired is returned when the token was valid but has passed
+	// its expiration time. This is separate from ErrTokenInvalid because
 	// you might want to handle expired tokens differently (e.g., offer refresh).
-	ErrExpiredToken = errors.New("token has expired")
+	ErrTokenExpired = errors.New("token has expired")
 )

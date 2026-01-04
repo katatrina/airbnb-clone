@@ -16,7 +16,7 @@ type TokenMaker interface {
 	// CreateToken generates a new token for the given user ID.
 	// The token will be valid for the duration configured in the maker.
 	// Returns the token string or an error if token creation fails.
-	CreateToken(userID string) error
+	CreateToken(userID string) (string, error)
 
 	// VerifyToken parses and validates a token string.
 	// Returns the claims embedded in the token if valid.
