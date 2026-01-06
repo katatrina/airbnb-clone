@@ -2,11 +2,14 @@ package token
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
+
+const MinHMACSecretKeySize = 32
 
 // JWTMaker is a TokenMaker implementation that uses JSON Web Tokens (JWT).
 // It uses the HS256 (HMAC-SHA256) signing algorithm with a symmetric secret key.
@@ -20,7 +23,7 @@ import (
 // - When third parties need to verify tokens but shouldn't be able to create them
 // - When you want to rotate keys without coordinating across services
 type JWTMaker struct {
-	secretKey string
+	secretKey []byte
 	expiry    time.Duration
 }
 
@@ -37,11 +40,15 @@ var _ TokenMaker = (*JWTMaker)(nil)
 // Example:
 //
 //	maker := token.NewJWTMaker(os.Getenv("JWT_SECRET"), 24*time.Hour)
-func NewJWTMaker(secretKey string, expiry time.Duration) *JWTMaker {
+func NewJWTMaker(secretKey []byte, expiry time.Duration) (*JWTMaker, error) {
+	if len(secretKey) < MinHMACSecretKeySize {
+		return nil, fmt.Errorf("secret key must be at least %d bytes", MinHMACSecretKeySize)
+	}
+
 	return &JWTMaker{
 		secretKey: secretKey,
 		expiry:    expiry,
-	}
+	}, nil
 }
 
 // CreateToken generates a new JWT for the given user ID.
@@ -90,7 +97,7 @@ func (m *JWTMaker) CreateToken(userID string) (string, error) {
 
 	// Sign the token with our secret key.
 	// This produces the final token string: header.payload.signature
-	return token.SignedString([]byte(m.secretKey))
+	return token.SignedString(m.secretKey)
 }
 
 // VerifyToken parses a JWT string and validates it.

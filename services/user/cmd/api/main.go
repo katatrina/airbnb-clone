@@ -36,7 +36,11 @@ func main() {
 	}
 	log.Println("Connected to database successfully")
 
-	tokenMaker := token.NewJWTMaker(cfg.JWTSecret, cfg.JWTExpiry)
+	tokenMaker, err := token.NewJWTMaker([]byte(cfg.JWTSecret), cfg.JWTExpiry)
+	if err != nil {
+		log.Fatalf("Cannot create token maker: %v", err)
+	}
+
 	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo, tokenMaker)
 	userHandler := handler.NewUserHandler(userService)
