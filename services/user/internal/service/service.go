@@ -114,7 +114,7 @@ func (s *UserService) Login(ctx context.Context, arg LoginParams) (*LoginResult,
 }
 
 // GetUserByID retrieves a user by their ID.
-// Returns model.ErrUserNotFound if user doesn't exist.
+// Pass through model.ErrUserNotFound if user doesn't exist.
 func (s *UserService) GetUserByID(ctx context.Context, id string) (*model.User, error) {
 	return s.userRepo.FindUserByID(ctx, id)
 }

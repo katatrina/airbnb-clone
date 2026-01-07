@@ -43,7 +43,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *model.User) error
 		// PostgreSQL error code 23505 = unique_violation
 		// This happens when email already exists in database
 		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		if errors.As(err, &pgErr) && pgErr.ConstraintName == "users_email_key" {
 			return model.ErrEmailAlreadyExists
 		}
 
@@ -76,7 +76,6 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*mo
 	//)
 	rows, _ := r.db.Query(ctx, query, email)
 	user, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.User])
-
 	if err != nil {
 		// pgx.ErrNoRows means no user found with this email
 		// We translate this to our domain error

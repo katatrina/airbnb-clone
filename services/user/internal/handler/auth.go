@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/katatrina/airbnb-clone/pkg/response"
+	"github.com/katatrina/airbnb-clone/pkg/validator"
 	"github.com/katatrina/airbnb-clone/services/user/internal/model"
 	"github.com/katatrina/airbnb-clone/services/user/internal/service"
 )
@@ -14,8 +15,8 @@ func (h *UserHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		// TODO: Customize raw validation error message
-		response.BadRequest(c, response.CodeValidationFailed, err.Error())
+		fieldErrors := validator.TranslateErrors(err)
+		response.BadRequestWithErrors(c, response.CodeValidationFailed, "Validation failed", fieldErrors)
 		return
 	}
 

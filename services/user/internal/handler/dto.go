@@ -8,9 +8,9 @@
 package handler
 
 type RegisterRequest struct {
-	DisplayName string `json:"displayName" binding:"required,min=2,max=100"`
+	DisplayName string `json:"displayName" binding:"required,min=2,max=100,safename"`
 	Email       string `json:"email" binding:"required,email,max=255"`
-	Password    string `json:"password" binding:"required,min=8,max=72"`
+	Password    string `json:"password" binding:"required,min=8,max=72,strongpass"`
 }
 
 type LoginRequest struct {
