@@ -36,9 +36,9 @@ type Listing struct {
 }
 
 type Province struct {
-	Code      string    `db:"code" json:"code"`
-	FullName  string    `db:"full_name" json:"fullName"`
-	CreatedAt time.Time `db:"created_at" json:"-"`
+	Code      string    `db:"code"`
+	FullName  string    `db:"full_name"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
 type Ward struct {

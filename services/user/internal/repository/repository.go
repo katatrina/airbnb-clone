@@ -60,7 +60,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *model.User) error
 // This is used for login - we check if email exists, then compare password.
 func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*model.User, error) {
 	query := `
-		SELECT *
+		SELECT id, display_name, email, password_hash, created_at, updated_at
 		FROM users
 		WHERE email = $1
 	`
@@ -91,7 +91,7 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*mo
 
 func (r *UserRepository) FindUserByID(ctx context.Context, id string) (*model.User, error) {
 	query := `
-		SELECT *
+		SELECT id, display_name, email, password_hash, created_at, updated_at
 		FROM users
 		WHERE id = $1
 	`

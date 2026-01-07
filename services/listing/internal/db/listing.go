@@ -9,16 +9,12 @@ import (
 
 func (r *ListingRepository) ListProvinces(ctx context.Context) ([]model.Province, error) {
 	query := `
-		SELECT *
+		SELECT code, full_name, created_at
 		FROM provinces 
 		ORDER BY full_name
 	`
 
-	rows, err := r.db.Query(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-
+	rows, _ := r.db.Query(ctx, query)
 	provinces, err := pgx.CollectRows(rows, pgx.RowToStructByName[model.Province])
 	if err != nil {
 		return nil, err
@@ -29,7 +25,7 @@ func (r *ListingRepository) ListProvinces(ctx context.Context) ([]model.Province
 
 func (r *ListingRepository) ListWards(ctx context.Context, provinceCode string) ([]model.Ward, error) {
 	query := `
-		SELECT *
+		SELECT code, full_name, province_code, created_at
 		FROM wards
 		WHERE province_code = $1
 		ORDER BY full_name
