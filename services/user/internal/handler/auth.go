@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/katatrina/airbnb-clone/pkg/response"
-	"github.com/katatrina/airbnb-clone/pkg/validator"
 	"github.com/katatrina/airbnb-clone/services/user/internal/model"
 	"github.com/katatrina/airbnb-clone/services/user/internal/service"
 )
@@ -15,8 +14,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		fieldErrors := validator.TranslateErrors(err)
-		response.BadRequestWithErrors(c, response.CodeValidationFailed, "Validation failed", fieldErrors)
+		response.HandleJSONBindingError(c, err)
 		return
 	}
 
@@ -28,7 +26,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, model.ErrEmailAlreadyExists):
-			response.Conflict(c, response.CodeEmailExists, "Email already exists")
+			response.Conflict(c, response.CodeEmailAlreadyExists, "Email already exists")
 			return
 		default:
 			// Unknown error = internal server error
@@ -52,8 +50,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	var req LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		// TODO: Customize raw validation error message
-		response.BadRequest(c, response.CodeValidationFailed, err.Error())
+		response.HandleJSONBindingError(c, err)
 		return
 	}
 
@@ -63,8 +60,8 @@ func (h *UserHandler) Login(c *gin.Context) {
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, model.ErrInvalidCredentials):
-			response.Unauthorized(c, "Invalid email or password")
+		case errors.Is(err, model.ErrIncorrectCredentials):
+			response.Unauthorized(c, response.CodeIncorrectCredentials, "Incorrect email or password")
 			return
 
 		default:

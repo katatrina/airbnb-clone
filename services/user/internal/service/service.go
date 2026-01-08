@@ -83,10 +83,10 @@ func (s *UserService) Login(ctx context.Context, arg LoginParams) (*LoginResult,
 	// Find user by email
 	user, err := s.userRepo.FindUserByEmail(ctx, arg.Email)
 	if err != nil {
-		// If user not found, return generic "invalid credentials"
+		// If user not found, return generic "incorrect credentials"
 		// Don't reveal that the email doesn't exist
 		if errors.Is(err, model.ErrUserNotFound) {
-			return nil, model.ErrInvalidCredentials
+			return nil, model.ErrIncorrectCredentials
 		}
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (s *UserService) Login(ctx context.Context, arg LoginParams) (*LoginResult,
 		// Password doesn't match - return same generic error
 		// Don't reveal that the password is wrong (email was correct)
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return nil, model.ErrInvalidCredentials
+			return nil, model.ErrIncorrectCredentials
 		}
 		return nil, err
 	}

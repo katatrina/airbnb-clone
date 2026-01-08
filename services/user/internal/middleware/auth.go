@@ -34,7 +34,7 @@ func AuthMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 		// Get Authorization header
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			response.Unauthorized(c, "Authorization header is required")
+			response.Unauthorized(c, response.CodeUnauthorized, "Authorization header is required")
 			c.Abort()
 			return
 		}
@@ -42,7 +42,7 @@ func AuthMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 		// Parse "Bearer <token>" format
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			response.Unauthorized(c, "Authorization header format must be: Bearer {token}")
+			response.Unauthorized(c, response.CodeUnauthorized, "Authorization header format must be: Bearer {token}")
 			c.Abort()
 			return
 		}
@@ -58,11 +58,11 @@ func AuthMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 			case errors.Is(err, token.ErrTokenExpired):
 				// Could return a different message or status code for expired tokens
 				// e.g, to prompt client to refresh
-				response.Unauthorized(c, "Token has expired")
+				response.Unauthorized(c, response.CodeUnauthorized, "Token has expired")
 			case errors.Is(err, token.ErrTokenInvalid):
-				response.Unauthorized(c, "Invalid token")
+				response.Unauthorized(c, response.CodeUnauthorized, "Invalid token")
 			default:
-				response.Unauthorized(c, "Authentication failed")
+				response.Unauthorized(c, response.CodeUnauthorized, "Authentication failed")
 			}
 			c.Abort()
 			return

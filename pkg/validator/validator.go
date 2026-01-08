@@ -4,19 +4,39 @@ import (
 	"errors"
 	"reflect"
 	"strings"
+	"unicode"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	enTranslations "github.com/go-playground/validator/v10/translations/en"
-	"github.com/katatrina/airbnb-clone/pkg/response"
 )
 
 var (
 	validate *validator.Validate
 	trans    ut.Translator
 )
+
+// FieldErrorCode represents the type of validation error.
+type FieldErrorCode string
+
+const (
+	FieldCodeRequired      FieldErrorCode = "REQUIRED"
+	FieldCodeInvalidFormat FieldErrorCode = "INVALID_FORMAT"
+	FieldCodeTooShort      FieldErrorCode = "TOO_SHORT"
+	FieldCodeTooLong       FieldErrorCode = "TOO_LONG"
+	FieldCodeMinValue      FieldErrorCode = "MIN_VALUE"
+	FieldCodeMaxValue      FieldErrorCode = "MAX_VALUE"
+	FieldCodeInvalidJSON   FieldErrorCode = "INVALID_JSON"
+)
+
+// FieldError represents a validation error for a specific field.
+type FieldError struct {
+	Field   string         `json:"field"`
+	Code    FieldErrorCode `json:"code"`
+	Message string         `json:"message"`
+}
 
 func init() {
 	v, ok := binding.Validator.Engine().(*validator.Validate)
@@ -44,27 +64,81 @@ func init() {
 	registerRules()
 }
 
-func TranslateErrors(err error) []response.FieldError {
-	var fieldErrors []response.FieldError
+// TranslateErrors converts validator.ValidationErrors to FieldError slice.
+// It translates error messages and converts field names to camelCase.
+func TranslateErrors(err error) []FieldError {
+	var fieldErrors []FieldError
 
 	var validatorErrors validator.ValidationErrors
 	if !errors.As(err, &validatorErrors) {
-		return []response.FieldError{
+		return []FieldError{
 			{
 				Field:   "body",
-				Code:    "INVALID_JSON",
+				Code:    FieldCodeInvalidJSON,
 				Message: "Invalid JSON format",
 			},
 		}
 	}
 
 	for _, e := range validatorErrors {
-		fieldErrors = append(fieldErrors, response.FieldError{
-			Field:   e.Field(),
-			Code:    strings.ToUpper(e.Tag()),
+		fieldErrors = append(fieldErrors, FieldError{
+			Field:   toCamelCase(e.Field()),
+			Code:    mapValidationTag(e.Tag()),
 			Message: e.Translate(trans),
 		})
 	}
 
 	return fieldErrors
+}
+
+// mapValidationTag maps validator tags to FieldErrorCode constants.
+func mapValidationTag(tag string) FieldErrorCode {
+	switch tag {
+	case "required":
+		return FieldCodeRequired
+	case "email", "url", "uuid":
+		return FieldCodeInvalidFormat
+	case "min":
+		return FieldCodeTooShort
+	case "max":
+		return FieldCodeTooLong
+	case "gte":
+		return FieldCodeMinValue
+	case "lte":
+		return FieldCodeMaxValue
+	default:
+		// For custom validators like "strongpass", "safename"
+		return FieldErrorCode(strings.ToUpper(tag))
+	}
+}
+
+// toCamelCase converts PascalCase to camelCase.
+// DisplayName -> displayName
+// UserID -> userId (properly handles acronyms)
+func toCamelCase(s string) string {
+	if s == "" {
+		return ""
+	}
+
+	// Convert first character to lowercase
+	runes := []rune(s)
+	runes[0] = unicode.ToLower(runes[0])
+
+	// Handle acronyms: UserID -> userId, not userID
+	// Find where the acronym ends (when we hit a lowercase letter)
+	for i := 1; i < len(runes)-1; i++ {
+		if unicode.IsUpper(runes[i]) && unicode.IsLower(runes[i+1]) {
+			// This is where acronym ends
+			// e.g., "UserID" -> i=4 (D), so convert I to lowercase
+			// Result: "userId"
+			break
+		}
+		if unicode.IsUpper(runes[i]) {
+			runes[i] = unicode.ToLower(runes[i])
+		} else {
+			break
+		}
+	}
+
+	return string(runes)
 }

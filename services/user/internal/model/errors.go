@@ -3,9 +3,9 @@ package model
 import "errors"
 
 var (
-	// ErrInvalidCredentials is returned when email/password combination is wrong.
+	// ErrIncorrectCredentials is returned when email/password combination is wrong.
 	// We use a generic message to avoid leaking information about which field is incorrect.
-	ErrInvalidCredentials = errors.New("invalid email or password")
+	ErrIncorrectCredentials = errors.New("incorrect email or password")
 
 	// ErrUserNotFound is returned when a user cannot be found by ID or other identifier.
 	ErrUserNotFound = errors.New("user not found")
