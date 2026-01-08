@@ -2,6 +2,7 @@ package response
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -91,5 +92,6 @@ func HandleJSONBindingError(c *gin.Context, err error) {
 		return
 	}
 
-	BadRequest(c, CodeInvalidJSONFormat, err.Error())
+	log.Printf("[WARN] JSON parsing error: %v", err)
+	BadRequest(c, CodeInvalidJSONFormat, "Request body must be valid JSON")
 }
