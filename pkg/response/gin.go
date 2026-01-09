@@ -73,17 +73,18 @@ func InternalError(c *gin.Context) {
 
 // ============ Helper ============
 
-// HandleJSONBindingError properly handles different types of ShouldBindJSON errors.
+// HandleJSONBindingError properly handles different types of validator.ShouldBindJSON errors.
 // It distinguishes between JSON parsing errors and validation errors,
 // returning appropriate error codes and messages.
 //
 // Usage:
 //
-//	if err := c.ShouldBindJSON(&req); err != nil {
+//	if err := validator.ShouldBindJSON(&req); err != nil {
 //	    response.HandleJSONBindingError(c, err)
 //	    return
 //	}
 func HandleJSONBindingError(c *gin.Context, err error) {
+	// Validation errors
 	var validationErrors validatorV10.ValidationErrors
 	if errors.As(err, &validationErrors) {
 		fieldErrors := validator.TranslateValidationErrors(validationErrors)
@@ -91,5 +92,6 @@ func HandleJSONBindingError(c *gin.Context, err error) {
 		return
 	}
 
+	// JSON parsing errors or other errors
 	BadRequest(c, CodeInvalidJSONFormat, "Request body must be valid JSON")
 }

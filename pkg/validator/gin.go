@@ -1,12 +1,14 @@
 package validator
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
+
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 )
 
 // ShouldBindJSON binds JSON request body to obj, normalizes it, then validates.
-// This is a Gin-specific adapter over the framework-agnostic validation logic.
 //
 // This is a drop-in replacement for gin.Context.ShouldBindJSON() with auto-normalization.
 //
@@ -17,17 +19,24 @@ import (
 //	    response.HandleJSONBindingError(c, err)
 //	    return
 //	}
-//
-// Note: This function is Gin-specific. For other frameworks, implement a similar
-// adapter that calls NormalizeStruct() and validates using the standard validator.
 func ShouldBindJSON(c *gin.Context, obj interface{}) error {
-	if err := c.ShouldBindBodyWith(obj, binding.JSON); err != nil {
+	// Read body and allow re-reading
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		return err
+	}
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+
+	// Bind JSON without validation
+	if err := json.Unmarshal(body, obj); err != nil {
 		return err
 	}
 
+	// Normalize first
 	NormalizeStruct(obj)
 
-	if err := binding.Validator.ValidateStruct(obj); err != nil {
+	// Then validate (now with normalized values)
+	if err = validate.Struct(obj); err != nil {
 		return err
 	}
 

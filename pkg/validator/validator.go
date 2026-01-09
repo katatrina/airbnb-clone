@@ -1,3 +1,4 @@
+// Package validator provides request validation and normalization.
 package validator
 
 import (
@@ -32,6 +33,7 @@ const (
 // FieldError represents a validation error for a specific field.
 type FieldError struct {
 	Field   string         `json:"field"`
+	Value   any            `json:"value"`
 	Code    FieldErrorCode `json:"code"`
 	Message string         `json:"message"`
 }
@@ -68,6 +70,7 @@ func TranslateValidationErrors(err validator.ValidationErrors) []FieldError {
 	for _, e := range err {
 		fieldErrors = append(fieldErrors, FieldError{
 			Field:   toCamelCase(e.Field()),
+			Value:   e.Value(),
 			Code:    mapValidationTag(e.Tag()),
 			Message: e.Translate(trans),
 		})
@@ -81,11 +84,11 @@ func mapValidationTag(tag string) FieldErrorCode {
 	switch tag {
 	case "required":
 		return FieldCodeRequired
-	case "email", "url", "uuid", "strongpass":
+	case "email":
 		return FieldCodeInvalidFormat
 	case "min":
 		return FieldCodeTooShort
-	case "max":
+	case "max", "maxbytes":
 		return FieldCodeTooLong
 	case "gte":
 		return FieldCodeMinValue

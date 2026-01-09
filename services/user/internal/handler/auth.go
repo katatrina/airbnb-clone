@@ -40,10 +40,11 @@ func (h *UserHandler) Register(c *gin.Context) {
 	}
 
 	response.Created(c, UserResponse{
-		ID:          user.ID,
-		DisplayName: user.DisplayName,
-		Email:       user.Email,
-		CreatedAt:   user.CreatedAt.Unix(),
+		ID:            user.ID,
+		DisplayName:   user.DisplayName,
+		Email:         user.Email,
+		EmailVerified: user.EmailVerified,
+		CreatedAt:     user.CreatedAt.Unix(),
 	})
 }
 
@@ -55,7 +56,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	result, err := h.userService.Login(c.Request.Context(), service.LoginParams{
+	result, err := h.userService.LoginUser(c.Request.Context(), service.LoginUserParams{
 		Email:    req.Email,
 		Password: req.Password,
 	})
@@ -66,7 +67,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 			return
 
 		default:
-			log.Printf("[ERROR] Login failed: %v", err)
+			log.Printf("[ERROR] LoginUser failed: %v", err)
 			response.InternalError(c)
 			return
 		}

@@ -1,7 +1,7 @@
 // Package service contains business logic.
 // This layer is responsible for:
 // 1. Orchestrating calls to repository
-// 2. Implementing business rules (password hashing, etc.)
+// 2. Implementing business rules
 // 3. Transforming between DTOs and domain models
 //
 // Key principle: Service layer knows NOTHING about HTTP.
@@ -12,6 +12,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -40,28 +41,35 @@ type CreateUserParams struct {
 }
 
 func (s *UserService) CreateUser(ctx context.Context, arg CreateUserParams) (*model.User, error) {
-	userID, err := uuid.NewV7()
+	// Email must be unique
+	exists, err := s.userRepo.CheckEmailExists(ctx, arg.Email)
 	if err != nil {
 		return nil, err
 	}
+	if exists {
+		return nil, model.ErrEmailAlreadyExists
+	}
 
+	// Password must be hashed (bcrypt cost 10)
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(arg.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
+	// User starts as unverified (implementing email verification)
+	userID, _ := uuid.NewV7()
 	now := time.Now()
+
 	user := model.User{
-		ID:           userID.String(),
-		DisplayName:  arg.DisplayName,
-		Email:        arg.Email,
-		PasswordHash: string(hashedPassword),
-		CreatedAt:    now,
-		UpdatedAt:    now,
+		ID:            userID.String(),
+		DisplayName:   arg.DisplayName,
+		Email:         arg.Email,
+		PasswordHash:  string(hashedPassword),
+		EmailVerified: false,
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}
 
-	// Repository returns model.ErrEmailAlreadyExists if email is taken
-	// We pass this through to the handler - no need to wrap or transform
 	err = s.userRepo.CreateUser(ctx, &user)
 	if err != nil {
 		return nil, err
@@ -70,21 +78,20 @@ func (s *UserService) CreateUser(ctx context.Context, arg CreateUserParams) (*mo
 	return &user, nil
 }
 
-type LoginParams struct {
+type LoginUserParams struct {
 	Email    string
 	Password string
 }
 
-type LoginResult struct {
+type LoginUserResult struct {
 	AccessToken string
 }
 
-func (s *UserService) Login(ctx context.Context, arg LoginParams) (*LoginResult, error) {
+func (s *UserService) LoginUser(ctx context.Context, arg LoginUserParams) (*LoginUserResult, error) {
 	// Find user by email
 	user, err := s.userRepo.FindUserByEmail(ctx, arg.Email)
 	if err != nil {
-		// If user not found, return generic "incorrect credentials"
-		// Don't reveal that the email doesn't exist
+		// Don't reveal if email exists or not (security)
 		if errors.Is(err, model.ErrUserNotFound) {
 			return nil, model.ErrIncorrectCredentials
 		}
@@ -108,13 +115,19 @@ func (s *UserService) Login(ctx context.Context, arg LoginParams) (*LoginResult,
 		return nil, err
 	}
 
-	return &LoginResult{
+	// Update last login time
+	now := time.Now()
+	user.LastLoginAt = &now
+	err = s.userRepo.UpdateLastLogin(ctx, user.ID, user.LastLoginAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return &LoginUserResult{
 		AccessToken: accessToken,
 	}, nil
 }
 
-// GetUserByID retrieves a user by their ID.
-// Pass through model.ErrUserNotFound if user doesn't exist.
 func (s *UserService) GetUserByID(ctx context.Context, id string) (*model.User, error) {
 	return s.userRepo.FindUserByID(ctx, id)
 }

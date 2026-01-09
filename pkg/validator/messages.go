@@ -13,8 +13,6 @@ func registerMessages() {
 		"max":      "{0} must be at most {1} characters",
 		"gte":      "{0} must be at least {1}",
 		"lte":      "{0} must be at most {1}",
-		"url":      "{0} must be a valid URL",
-		"uuid":     "{0} must be a valid UUID",
 	}
 
 	for tag, msg := range messages {
