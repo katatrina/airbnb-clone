@@ -37,9 +37,17 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 	}
 
 	response.OK(c, UserResponse{
-		ID:          user.ID,
-		DisplayName: user.DisplayName,
-		Email:       user.Email,
-		CreatedAt:   user.CreatedAt.Unix(),
+		ID:            user.ID,
+		DisplayName:   user.DisplayName,
+		Email:         user.Email,
+		EmailVerified: user.EmailVerified,
+		LastLoginAt: func() *int64 {
+			if user.LastLoginAt != nil {
+				return nil
+			}
+			lastLoginAt := user.LastLoginAt.Unix()
+			return &lastLoginAt
+		}(),
+		CreatedAt: user.CreatedAt.Unix(),
 	})
 }

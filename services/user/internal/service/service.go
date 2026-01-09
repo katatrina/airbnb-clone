@@ -12,6 +12,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -40,28 +41,35 @@ type CreateUserParams struct {
 }
 
 func (s *UserService) CreateUser(ctx context.Context, arg CreateUserParams) (*model.User, error) {
-	userID, err := uuid.NewV7()
-	if err != nil {
+	// Email must be unique
+	existing, err := s.userRepo.FindUserByEmail(ctx, arg.Email)
+	if err != nil && !errors.Is(err, model.ErrUserNotFound) {
 		return nil, err
 	}
+	if existing != nil {
+		return nil, model.ErrEmailAlreadyExists
+	}
 
+	// Password must be hashed (bcrypt cost 10)
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(arg.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
+	// User starts as unverified (implementing email verification)
+	userID, _ := uuid.NewV7()
 	now := time.Now()
+
 	user := model.User{
-		ID:           userID.String(),
-		DisplayName:  arg.DisplayName,
-		Email:        arg.Email,
-		PasswordHash: string(hashedPassword),
-		CreatedAt:    now,
-		UpdatedAt:    now,
+		ID:            userID.String(),
+		DisplayName:   arg.DisplayName,
+		Email:         arg.Email,
+		PasswordHash:  string(hashedPassword),
+		EmailVerified: false,
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}
 
-	// Repository returns model.ErrEmailAlreadyExists if email is taken
-	// We pass this through to the handler - no need to wrap or transform
 	err = s.userRepo.CreateUser(ctx, &user)
 	if err != nil {
 		return nil, err
@@ -83,12 +91,16 @@ func (s *UserService) Login(ctx context.Context, arg LoginParams) (*LoginResult,
 	// Find user by email
 	user, err := s.userRepo.FindUserByEmail(ctx, arg.Email)
 	if err != nil {
-		// If user not found, return generic "incorrect credentials"
-		// Don't reveal that the email doesn't exist
+		// Don't reveal if email exists or not (security)
 		if errors.Is(err, model.ErrUserNotFound) {
 			return nil, model.ErrIncorrectCredentials
 		}
 		return nil, err
+	}
+
+	// Check if account is active
+	if user.DeletedAt != nil {
+		return nil, model.ErrIncorrectCredentials
 	}
 
 	// Compare password with stored hash
@@ -108,13 +120,16 @@ func (s *UserService) Login(ctx context.Context, arg LoginParams) (*LoginResult,
 		return nil, err
 	}
 
+	// Update last login time
+	now := time.Now()
+	user.LastLoginAt = &now
+	err = s.userRepo.UpdateLastLogin(ctx, user.ID, user.LastLoginAt)
+
 	return &LoginResult{
 		AccessToken: accessToken,
 	}, nil
 }
 
-// GetUserByID retrieves a user by their ID.
-// Pass through model.ErrUserNotFound if user doesn't exist.
 func (s *UserService) GetUserByID(ctx context.Context, id string) (*model.User, error) {
 	return s.userRepo.FindUserByID(ctx, id)
 }

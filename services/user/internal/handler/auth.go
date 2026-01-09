@@ -40,10 +40,11 @@ func (h *UserHandler) Register(c *gin.Context) {
 	}
 
 	response.Created(c, UserResponse{
-		ID:          user.ID,
-		DisplayName: user.DisplayName,
-		Email:       user.Email,
-		CreatedAt:   user.CreatedAt.Unix(),
+		ID:            user.ID,
+		DisplayName:   user.DisplayName,
+		Email:         user.Email,
+		EmailVerified: user.EmailVerified,
+		CreatedAt:     user.CreatedAt.Unix(),
 	})
 }
 

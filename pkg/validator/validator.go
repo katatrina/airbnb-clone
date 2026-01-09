@@ -85,7 +85,7 @@ func mapValidationTag(tag string) FieldErrorCode {
 		return FieldCodeInvalidFormat
 	case "min":
 		return FieldCodeTooShort
-	case "max":
+	case "max", "maxbytes":
 		return FieldCodeTooLong
 	case "gte":
 		return FieldCodeMinValue
