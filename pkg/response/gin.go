@@ -2,7 +2,6 @@ package response
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -87,11 +86,10 @@ func InternalError(c *gin.Context) {
 func HandleJSONBindingError(c *gin.Context, err error) {
 	var validationErrors validatorV10.ValidationErrors
 	if errors.As(err, &validationErrors) {
-		fieldErrors := validator.TranslateErrors(err)
+		fieldErrors := validator.TranslateValidationErrors(validationErrors)
 		BadRequestWithErrors(c, CodeValidationFailed, "Validation failed", fieldErrors)
 		return
 	}
 
-	log.Printf("[WARN] JSON parsing error: %v", err)
 	BadRequest(c, CodeInvalidJSONFormat, "Request body must be valid JSON")
 }

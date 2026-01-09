@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/katatrina/airbnb-clone/pkg/response"
+	"github.com/katatrina/airbnb-clone/pkg/validator"
 	"github.com/katatrina/airbnb-clone/services/user/internal/model"
 	"github.com/katatrina/airbnb-clone/services/user/internal/service"
 )
@@ -13,7 +14,7 @@ import (
 func (h *UserHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := validator.ShouldBindJSON(c, &req); err != nil {
 		response.HandleJSONBindingError(c, err)
 		return
 	}
@@ -49,7 +50,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 func (h *UserHandler) Login(c *gin.Context) {
 	var req LoginRequest
 
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := validator.ShouldBindJSON(c, &req); err != nil {
 		response.HandleJSONBindingError(c, err)
 		return
 	}

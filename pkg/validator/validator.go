@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"errors"
 	"reflect"
 	"strings"
 	"unicode"
@@ -28,7 +27,6 @@ const (
 	FieldCodeTooLong       FieldErrorCode = "TOO_LONG"
 	FieldCodeMinValue      FieldErrorCode = "MIN_VALUE"
 	FieldCodeMaxValue      FieldErrorCode = "MAX_VALUE"
-	FieldCodeInvalidJSON   FieldErrorCode = "INVALID_JSON"
 )
 
 // FieldError represents a validation error for a specific field.
@@ -64,23 +62,10 @@ func init() {
 	registerRules()
 }
 
-// TranslateErrors converts validator.ValidationErrors to FieldError slice.
-// It translates error messages and converts field names to camelCase.
-func TranslateErrors(err error) []FieldError {
+// TranslateValidationErrors converts validator.ValidationErrors to a slice of FieldError.
+func TranslateValidationErrors(err validator.ValidationErrors) []FieldError {
 	var fieldErrors []FieldError
-
-	var validatorErrors validator.ValidationErrors
-	if !errors.As(err, &validatorErrors) {
-		return []FieldError{
-			{
-				Field:   "body",
-				Code:    FieldCodeInvalidJSON,
-				Message: "Invalid JSON format",
-			},
-		}
-	}
-
-	for _, e := range validatorErrors {
+	for _, e := range err {
 		fieldErrors = append(fieldErrors, FieldError{
 			Field:   toCamelCase(e.Field()),
 			Code:    mapValidationTag(e.Tag()),
@@ -96,7 +81,7 @@ func mapValidationTag(tag string) FieldErrorCode {
 	switch tag {
 	case "required":
 		return FieldCodeRequired
-	case "email", "url", "uuid":
+	case "email", "url", "uuid", "strongpass":
 		return FieldCodeInvalidFormat
 	case "min":
 		return FieldCodeTooShort
@@ -107,7 +92,6 @@ func mapValidationTag(tag string) FieldErrorCode {
 	case "lte":
 		return FieldCodeMaxValue
 	default:
-		// For custom validators like "strongpass", "safename"
 		return FieldErrorCode(strings.ToUpper(tag))
 	}
 }
