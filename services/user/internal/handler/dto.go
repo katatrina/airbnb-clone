@@ -1,7 +1,6 @@
 package handler
 
 type RegisterRequest struct {
-<<<<<<< HEAD
 	// Lowercase to prevent duplicates
 	Email string `json:"email" binding:"required,email,max=255" normalize:"trim,lower"`
 
@@ -10,21 +9,11 @@ type RegisterRequest struct {
 
 	// Public display name
 	DisplayName string `json:"displayName" binding:"required,min=2,max=100" normalize:"trim,singlespace"`
-=======
-	Email string `json:"email" binding:"required,email,max=255" normalize:"trim,lower"`
-	// Password: bcrypt only uses first 72 bytes, so we limit max length to 72
-	Password    string `json:"password" binding:"required,min=8,maxbytes=72,strongpass" normalize:"trim"`
-	DisplayName string `json:"displayName" binding:"required,min=2,max=100,displayname" normalize:"trim"`
->>>>>>> dfabe7596391d9c6c7bf9d1e24a4534522056979
 }
 
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email" normalize:"trim,lower"`
-<<<<<<< HEAD
 	Password string `json:"password" binding:"required"`
-=======
-	Password string `json:"password" binding:"required" normalize:"trim"`
->>>>>>> dfabe7596391d9c6c7bf9d1e24a4534522056979
 	// Password: NO min/max validation on login (accept any length)
 	// User might have old password before we added min=8 rule
 }

@@ -42,19 +42,11 @@ type CreateUserParams struct {
 
 func (s *UserService) CreateUser(ctx context.Context, arg CreateUserParams) (*model.User, error) {
 	// Email must be unique
-<<<<<<< HEAD
 	exists, err := s.userRepo.CheckEmailExists(ctx, arg.Email)
 	if err != nil {
 		return nil, err
 	}
 	if exists {
-=======
-	existing, err := s.userRepo.FindUserByEmail(ctx, arg.Email)
-	if err != nil && !errors.Is(err, model.ErrUserNotFound) {
-		return nil, err
-	}
-	if existing != nil {
->>>>>>> dfabe7596391d9c6c7bf9d1e24a4534522056979
 		return nil, model.ErrEmailAlreadyExists
 	}
 
@@ -106,11 +98,6 @@ func (s *UserService) LoginUser(ctx context.Context, arg LoginUserParams) (*Logi
 		return nil, err
 	}
 
-	// Check if account is active
-	if user.DeletedAt != nil {
-		return nil, model.ErrIncorrectCredentials
-	}
-
 	// Compare password with stored hash
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(arg.Password))
 	if err != nil {
@@ -131,17 +118,9 @@ func (s *UserService) LoginUser(ctx context.Context, arg LoginUserParams) (*Logi
 	// Update last login time
 	now := time.Now()
 	user.LastLoginAt = &now
-	err = s.userRepo.UpdateLastLogin(ctx, user.ID, user.LastLoginAt)
-<<<<<<< HEAD
-	if err != nil {
-		return nil, err
-	}
-
+	_ = s.userRepo.UpdateLastLogin(ctx, user.ID, user.LastLoginAt)
+	
 	return &LoginUserResult{
-=======
-
-	return &LoginResult{
->>>>>>> dfabe7596391d9c6c7bf9d1e24a4534522056979
 		AccessToken: accessToken,
 	}, nil
 }

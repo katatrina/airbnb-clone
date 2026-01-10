@@ -42,7 +42,7 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 		Email:         user.Email,
 		EmailVerified: user.EmailVerified,
 		LastLoginAt: func() *int64 {
-			if user.LastLoginAt != nil {
+			if user.LastLoginAt == nil {
 				return nil
 			}
 			lastLoginAt := user.LastLoginAt.Unix()
