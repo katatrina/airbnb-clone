@@ -2,40 +2,52 @@ package handler
 
 import (
 	"log"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/katatrina/airbnb-clone/pkg/response"
 )
 
-func (h *Handler) ListProvinces(c *gin.Context) {
-	provinces, err := h.listingRepo.ListProvinces(c.Request.Context())
+func (h *ListingHandler) ListProvinces(c *gin.Context) {
+	provinces, err := h.listingService.ListProvinces(c.Request.Context())
 	if err != nil {
-		log.Printf("failed to list provinces: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		log.Printf("[ERROR] failed to list provinces: %v", err)
+		response.InternalServerError(c)
 		return
 	}
 
-	c.JSON(http.StatusOK, provinces)
+	resp := make([]ProvinceResponse, len(provinces))
+	for i, p := range provinces {
+		resp[i] = ProvinceResponse{
+			Code:     p.Code,
+			FullName: p.FullName,
+		}
+	}
+
+	response.OK(c, resp)
 }
 
-func (h *Handler) ListWards(c *gin.Context) {
+func (h *ListingHandler) ListWardsByProvince(c *gin.Context) {
 	provinceCode := c.Query("provinceCode")
 	if provinceCode == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "provinceCode is required"})
+		response.BadRequest(c, response.CodeMissingQueryParams, "provinceCode is required")
 		return
 	}
 
-	wards, err := h.listingRepo.ListWards(c.Request.Context(), provinceCode)
+	wards, err := h.listingService.ListWardsByProvince(c.Request.Context(), provinceCode)
 	if err != nil {
-		log.Printf("failed to get wards by province code: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		log.Printf("[ERROR] failed to get wards by province code: %v", err)
+		response.InternalServerError(c)
 		return
 	}
 
-	if len(wards) == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "province code not found"})
-		return
+	resp := make([]WardResponse, len(wards))
+	for i, w := range wards {
+		resp[i] = WardResponse{
+			Code:         w.Code,
+			FullName:     w.FullName,
+			ProvinceCode: provinceCode,
+		}
 	}
 
-	c.JSON(http.StatusOK, wards)
+	response.OK(c, resp)
 }

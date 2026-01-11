@@ -18,21 +18,21 @@ const (
 )
 
 type Listing struct {
-	ID            string        `db:"id" json:"id"`
-	HostID        string        `db:"host_id" json:"hostId"`
-	Title         string        `db:"title" json:"title"`
-	Description   *string       `db:"description" json:"description"`
-	PricePerNight int64         `db:"price_per_night" json:"pricePerNight"`
-	Currency      string        `db:"currency" json:"currency"`
-	ProvinceCode  string        `db:"province_code" json:"provinceCode"`
-	ProvinceName  string        `db:"province_name" json:"provinceName"`
-	WardCode      string        `db:"ward_code" json:"wardCode"`
-	WardName      string        `db:"ward_name" json:"wardName"`
-	AddressDetail string        `db:"address_detail" json:"addressDetail"`
-	Status        ListingStatus `db:"status" json:"status"`
-	CreatedAt     time.Time     `db:"created_at" json:"createdAt"`
-	UpdatedAt     time.Time     `db:"updated_at" json:"-"`
-	DeletedAt     *time.Time    `db:"deleted_at" json:"-"`
+	ID            string          `db:"id"`
+	HostID        string          `db:"host_id"`
+	Title         string          `db:"title"`
+	Description   string          `db:"description"`
+	PricePerNight int64           `db:"price_per_night"`
+	Currency      ListingCurrency `db:"currency"`
+	ProvinceCode  string          `db:"province_code"`
+	ProvinceName  string          `db:"province_name"`
+	WardCode      string          `db:"ward_code"`
+	WardName      string          `db:"ward_name"`
+	AddressDetail string          `db:"address_detail"`
+	Status        ListingStatus   `db:"status"`
+	CreatedAt     time.Time       `db:"created_at"`
+	UpdatedAt     time.Time       `db:"updated_at"`
+	DeletedAt     *time.Time      `db:"deleted_at"`
 }
 
 type Province struct {
@@ -42,8 +42,8 @@ type Province struct {
 }
 
 type Ward struct {
-	Code         string    `db:"code" json:"code"`
-	FullName     string    `db:"full_name" json:"fullName"`
-	ProvinceCode string    `db:"province_code" json:"provinceCode"`
-	CreatedAt    time.Time `db:"created_at" json:"-"`
+	Code         string    `db:"code" `
+	FullName     string    `db:"full_name" `
+	ProvinceCode string    `db:"province_code"`
+	CreatedAt    time.Time `db:"created_at"`
 }

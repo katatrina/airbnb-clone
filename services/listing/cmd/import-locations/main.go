@@ -11,7 +11,7 @@ package main
 //
 // 	"github.com/jackc/pgx/v5/pgxpool"
 // 	"github.com/katatrina/airbnb-clone/services/listing/config"
-// 	"github.com/katatrina/airbnb-clone/services/listing/internal/db"
+// 	"github.com/katatrina/airbnb-clone/services/listing/internal/repository"
 // )
 //
 // type Ward struct {
@@ -33,15 +33,15 @@ package main
 // 		log.Fatalf("Failed to load config: %v", err)
 // 	}
 //
-// 	// Create db connection
+// 	// Create repository connection
 // 	ctx := context.Background()
-// 	dbPool, err := db.NewListingRepository(ctx, cfg.DatabaseURL)
+// 	dbPool, err := repository.NewListingRepository(ctx, cfg.DatabaseURL)
 // 	if err != nil {
-// 		log.Fatalf("Failed to connect to db: %v", err)
+// 		log.Fatalf("Failed to connect to repository: %v", err)
 // 	}
 // 	defer dbPool.Close()
 //
-// 	log.Println("Connected to db successfully")
+// 	log.Println("Connected to repository successfully")
 //
 // 	// Read and parse JSON file from same directory
 // 	jsonFilePath := "cmd/import-locations/data.json"

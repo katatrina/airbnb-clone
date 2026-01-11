@@ -63,9 +63,9 @@ func Conflict(c *gin.Context, code ErrorCode, message string) {
 	c.JSON(http.StatusConflict, New().Error(code, message).Build())
 }
 
-// InternalError sends a 500 response.
+// InternalServerError sends a 500 response.
 // Never expose internal details to client.
-func InternalError(c *gin.Context) {
+func InternalServerError(c *gin.Context) {
 	c.JSON(http.StatusInternalServerError,
 		New().Error(CodeInternalServerError, "Internal server error. Please try again later.").Build(),
 	)

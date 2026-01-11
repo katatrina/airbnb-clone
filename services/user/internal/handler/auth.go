@@ -34,7 +34,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 			// IMPORTANT: Log the actual error for debugging
 			// but don't expose it to the client (security risk)
 			log.Printf("[ERROR] Register failed: %v", err)
-			response.InternalError(c)
+			response.InternalServerError(c)
 			return
 		}
 	}
@@ -68,7 +68,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 		default:
 			log.Printf("[ERROR] LoginUser failed: %v", err)
-			response.InternalError(c)
+			response.InternalServerError(c)
 			return
 		}
 	}

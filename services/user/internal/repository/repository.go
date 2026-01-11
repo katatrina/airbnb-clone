@@ -67,7 +67,7 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*mo
 	`
 
 	//var user model.User
-	//err := r.db.QueryRow(ctx, query, email).Scan(
+	//err := r.repository.QueryRow(ctx, query, email).Scan(
 	//	&user.ID,
 	//	&user.DisplayName,
 	//	&user.Email,

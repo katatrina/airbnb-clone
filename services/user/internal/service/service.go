@@ -13,6 +13,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -41,7 +42,6 @@ type CreateUserParams struct {
 }
 
 func (s *UserService) CreateUser(ctx context.Context, arg CreateUserParams) (*model.User, error) {
-	// Email must be unique
 	exists, err := s.userRepo.CheckEmailExists(ctx, arg.Email)
 	if err != nil {
 		return nil, err
@@ -50,13 +50,11 @@ func (s *UserService) CreateUser(ctx context.Context, arg CreateUserParams) (*mo
 		return nil, model.ErrEmailAlreadyExists
 	}
 
-	// Password must be hashed (bcrypt cost 10)
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(arg.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	// User starts as unverified (implementing email verification)
 	userID, _ := uuid.NewV7()
 	now := time.Now()
 
@@ -118,8 +116,11 @@ func (s *UserService) LoginUser(ctx context.Context, arg LoginUserParams) (*Logi
 	// Update last login time
 	now := time.Now()
 	user.LastLoginAt = &now
-	_ = s.userRepo.UpdateLastLogin(ctx, user.ID, user.LastLoginAt)
-	
+	err = s.userRepo.UpdateLastLogin(ctx, user.ID, user.LastLoginAt)
+	if err != nil {
+		log.Printf("[WARN] Failed to update last login for user %s: %v", user.ID, err)
+	}
+
 	return &LoginUserResult{
 		AccessToken: accessToken,
 	}, nil

@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/katatrina/airbnb-clone/pkg/response"
 	"github.com/katatrina/airbnb-clone/pkg/token"
-	"github.com/katatrina/airbnb-clone/services/user/internal/constant"
+	"github.com/katatrina/airbnb-clone/services/listing/internal/constant"
 )
 
 // AuthMiddleware validates tokens and extracts user ID.

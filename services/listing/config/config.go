@@ -2,16 +2,20 @@ package config
 
 import (
 	"errors"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	ServerPort  string `mapstructure:"SERVER_PORT"`
-	DatabaseURL string `mapstructure:"DATABASE_URL"`
-	RedisURL    string `mapstructure:"REDIS_URL"`
+	ServerPort  string        `mapstructure:"SERVER_PORT"`
+	DatabaseURL string        `mapstructure:"DATABASE_URL"`
+	RedisURL    string        `mapstructure:"REDIS_URL"`
+	JWTSecret   string        `mapstructure:"JWT_SECRET"`
+	JWTExpiry   time.Duration `mapstructure:"JWT_EXPIRY"`
 }
 
+// Validate checks that all required configuration is present.
 func (c *Config) Validate() error {
 	if c.ServerPort == "" {
 		return errors.New("SERVER_PORT is required")
@@ -21,6 +25,12 @@ func (c *Config) Validate() error {
 	}
 	if c.RedisURL == "" {
 		return errors.New("REDIS_URL is required")
+	}
+	if len(c.JWTSecret) < 32 {
+		return errors.New("JWT_SECRET must be at least 32 characters long")
+	}
+	if c.JWTExpiry <= 0 {
+		return errors.New("JWT_EXPIRY must be greater than 0")
 	}
 
 	return nil

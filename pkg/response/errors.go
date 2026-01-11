@@ -6,8 +6,12 @@ const (
 	CodeSuccess ErrorCode = "OK"
 
 	// Client errors - Validation & Format (400)
-	CodeValidationFailed  ErrorCode = "VALIDATION_FAILED"
-	CodeInvalidJSONFormat ErrorCode = "INVALID_JSON_FORMAT"
+	CodeValidationFailed     ErrorCode = "VALIDATION_FAILED"
+	CodeInvalidJSONFormat    ErrorCode = "INVALID_JSON_FORMAT"
+	CodeProvinceNotFound     ErrorCode = "PROVINCE_NOT_FOUND"
+	CodeWardNotFound         ErrorCode = "WARD_NOT_FOUND"
+	CodeWardProvinceMismatch ErrorCode = "WARD_PROVINCE_MISMATCH"
+	CodeMissingQueryParams   ErrorCode = "MISSING_QUERY_PARAMS"
 
 	// Client errors - Authentication (401)
 	CodeUnauthorized         ErrorCode = "UNAUTHORIZED"

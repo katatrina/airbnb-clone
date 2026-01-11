@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS listings
     id              UUID PRIMARY KEY,
     host_id         UUID        NOT NULL,
     title           TEXT        NOT NULL,
-    description     TEXT,
+    description     TEXT        NOT NULL,
     price_per_night BIGINT      NOT NULL,
     currency        TEXT        NOT NULL DEFAULT 'VND',
     province_code   TEXT        NOT NULL,

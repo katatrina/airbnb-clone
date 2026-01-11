@@ -31,7 +31,7 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 			return
 		default:
 			log.Printf("[ERROR] GetMe failed for user %s: %s", userID, err)
-			response.InternalError(c)
+			response.InternalServerError(c)
 			return
 		}
 	}
