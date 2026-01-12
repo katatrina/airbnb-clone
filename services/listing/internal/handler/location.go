@@ -29,7 +29,7 @@ func (h *ListingHandler) ListProvinces(c *gin.Context) {
 func (h *ListingHandler) ListWardsByProvince(c *gin.Context) {
 	provinceCode := c.Query("provinceCode")
 	if provinceCode == "" {
-		response.BadRequest(c, response.CodeMissingQueryParams, "provinceCode is required")
+		response.BadRequest(c, response.CodeValidationFailed, "provinceCode is required")
 		return
 	}
 
