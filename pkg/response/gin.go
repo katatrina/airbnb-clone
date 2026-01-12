@@ -48,14 +48,9 @@ func Unauthorized(c *gin.Context, code ErrorCode, message string) {
 	c.JSON(http.StatusUnauthorized, New().Error(code, message).Build())
 }
 
-// Forbidden sends a 403 response.
-func Forbidden(c *gin.Context, message string) {
-	c.JSON(http.StatusForbidden, New().Error(CodeForbidden, message).Build())
-}
-
 // NotFound sends a 404 response.
 func NotFound(c *gin.Context, message string) {
-	c.JSON(http.StatusNotFound, New().Error(CodeNotFound, message).Build())
+	c.JSON(http.StatusNotFound, New().Error(CodeResourceNotFound, message).Build())
 }
 
 // Conflict sends a 409 response.
@@ -93,5 +88,5 @@ func HandleJSONBindingError(c *gin.Context, err error) {
 	}
 
 	// JSON parsing errors or other errors
-	BadRequest(c, CodeInvalidJSONFormat, "Request body must be valid JSON")
+	BadRequest(c, CodeJSONFormatInvalid, "Request body must be valid JSON")
 }

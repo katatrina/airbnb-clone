@@ -42,11 +42,11 @@ func (h *ListingHandler) CreateListing(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, model.ErrProvinceCodeNotFound):
-			response.BadRequest(c, response.CodeProvinceNotFound, "Province code not found")
+			response.BadRequest(c, response.CodeResourceNotFound, "Province code not found")
 		case errors.Is(err, model.ErrWardCodeNotFound):
-			response.BadRequest(c, response.CodeWardNotFound, "Ward code not found")
+			response.BadRequest(c, response.CodeResourceNotFound, "Ward code not found")
 		case errors.Is(err, model.ErrWardProvinceMismatch):
-			response.BadRequest(c, response.CodeWardProvinceMismatch, "Ward does not belong to the selected province")
+			response.BadRequest(c, response.CodeReferenceInvalid, "Ward does not belong to the selected province")
 		default:
 			log.Printf("[ERROR] failed to create listing: %v", err)
 			response.InternalServerError(c)

@@ -16,7 +16,6 @@ func (r *ListingRepository) GetProvinceByCode(ctx context.Context, code string) 
 	`
 
 	rows, _ := r.db.Query(ctx, query, code)
-	var province model.Province
 	province, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.Province])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

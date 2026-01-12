@@ -16,7 +16,6 @@ type Config struct {
 }
 
 // Validate checks that all required configuration is present.
-// This is called after loading to fail fast if config is missing.
 func (c *Config) Validate() error {
 	if c.ServerPort == "" {
 		return errors.New("SERVER_PORT is required")

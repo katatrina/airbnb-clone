@@ -5,27 +5,29 @@ type ErrorCode string
 const (
 	CodeSuccess ErrorCode = "OK"
 
-	// Client errors - Validation & Format (400)
-	CodeValidationFailed     ErrorCode = "VALIDATION_FAILED"
-	CodeInvalidJSONFormat    ErrorCode = "INVALID_JSON_FORMAT"
-	CodeProvinceNotFound     ErrorCode = "PROVINCE_NOT_FOUND"
-	CodeWardNotFound         ErrorCode = "WARD_NOT_FOUND"
-	CodeWardProvinceMismatch ErrorCode = "WARD_PROVINCE_MISMATCH"
-	CodeMissingQueryParams   ErrorCode = "MISSING_QUERY_PARAMS"
+	// Validation & Format (400)
+	CodeValidationFailed  ErrorCode = "VALIDATION_FAILED"
+	CodeJSONFormatInvalid ErrorCode = "INVALID_JSON_FORMAT" // JSON, XML, etc
+	CodeReferenceInvalid  ErrorCode = "INVALID_REFERENCE"   // Foreign key, relationship
 
-	// Client errors - Authentication (401)
-	CodeUnauthorized         ErrorCode = "UNAUTHORIZED"
-	CodeIncorrectCredentials ErrorCode = "INCORRECT_CREDENTIALS"
+	// Authentication (401)
+	CodeAuthenticationRequired ErrorCode = "AUTHENTICATION_REQUIRED"
+	CodeCredentialsInvalid     ErrorCode = "INVALID_CREDENTIALS"
+	CodeTokenExpired           ErrorCode = "TOKEN_EXPIRED"
+	CodeTokenInvalid           ErrorCode = "TOKEN_INVALID"
 
-	// Client errors - Authorization (403)
-	CodeForbidden ErrorCode = "FORBIDDEN"
+	// Authorization (403)
 
-	// Client errors - Not Found (404)
-	CodeNotFound ErrorCode = "NOT_FOUND"
+	// Not Found (404)
+	CodeResourceNotFound ErrorCode = "RESOURCE_NOT_FOUND"
 
-	// Client errors - Conflict (409)
+	// Conflict (409)
 	CodeEmailAlreadyExists ErrorCode = "EMAIL_ALREADY_EXISTS"
+
+	// Rate Limiting (429)
+	CodeTooManyRequests ErrorCode = "TOO_MANY_REQUESTS"
 
 	// Server errors (500)
 	CodeInternalServerError ErrorCode = "INTERNAL_SERVER_ERROR"
+	CodeServiceUnavailable  ErrorCode = "SERVICE_UNAVAILABLE" // DB down, third-party API down
 )

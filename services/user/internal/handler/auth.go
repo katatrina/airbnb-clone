@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -27,12 +28,9 @@ func (h *UserHandler) Register(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, model.ErrEmailAlreadyExists):
-			response.Conflict(c, response.CodeEmailAlreadyExists, "Email already exists")
+			response.Conflict(c, response.CodeEmailAlreadyExists, fmt.Sprintf("Email %s already exists", req.Email))
 			return
 		default:
-			// Unknown error = internal server error
-			// IMPORTANT: Log the actual error for debugging
-			// but don't expose it to the client (security risk)
 			log.Printf("[ERROR] Register failed: %v", err)
 			response.InternalServerError(c)
 			return
@@ -63,7 +61,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, model.ErrIncorrectCredentials):
-			response.Unauthorized(c, response.CodeIncorrectCredentials, "Incorrect email or password")
+			response.Unauthorized(c, response.CodeCredentialsInvalid, "Incorrect email or password")
 			return
 
 		default:

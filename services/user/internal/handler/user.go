@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +28,7 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 			// - User was deleted after login
 			// - Database was reset
 			// - Token was issued for a non-existent user (bug)
-			response.NotFound(c, "User not found")
+			response.NotFound(c, fmt.Sprintf("User ID %s not found", userID))
 			return
 		default:
 			log.Printf("[ERROR] GetMe failed for user %s: %s", userID, err)
