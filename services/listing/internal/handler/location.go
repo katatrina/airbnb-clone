@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"errors"
+	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/katatrina/airbnb-clone/pkg/response"
+	"github.com/katatrina/airbnb-clone/services/listing/internal/model"
 )
 
 func (h *ListingHandler) ListProvinces(c *gin.Context) {
@@ -35,6 +38,11 @@ func (h *ListingHandler) ListWardsByProvince(c *gin.Context) {
 
 	wards, err := h.listingService.ListWardsByProvince(c.Request.Context(), provinceCode)
 	if err != nil {
+		if errors.Is(err, model.ErrProvinceCodeNotFound) {
+			response.NotFound(c, fmt.Sprintf("Province code %s not found", provinceCode))
+			return
+		}
+
 		log.Printf("[ERROR] failed to get wards by province code: %v", err)
 		response.InternalServerError(c)
 		return
@@ -45,7 +53,7 @@ func (h *ListingHandler) ListWardsByProvince(c *gin.Context) {
 		resp[i] = WardResponse{
 			Code:         w.Code,
 			FullName:     w.FullName,
-			ProvinceCode: provinceCode,
+			ProvinceCode: w.ProvinceCode,
 		}
 	}
 

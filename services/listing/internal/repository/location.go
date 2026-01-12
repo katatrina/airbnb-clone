@@ -28,7 +28,6 @@ func (r *ListingRepository) GetProvinceByCode(ctx context.Context, code string) 
 }
 
 func (r *ListingRepository) GetWardByCode(ctx context.Context, code string) (*model.Ward, error) {
-
 	query := `
 		SELECT code, full_name, province_code, created_at
 		FROM wards
@@ -71,11 +70,7 @@ func (r *ListingRepository) ListWardsByProvinceCode(ctx context.Context, provinc
 		ORDER BY full_name
 	`
 
-	rows, err := r.db.Query(ctx, query, provinceCode)
-	if err != nil {
-		return nil, err
-	}
-
+	rows, _ := r.db.Query(ctx, query, provinceCode)
 	wards, err := pgx.CollectRows(rows, pgx.RowToStructByName[model.Ward])
 	if err != nil {
 		return nil, err
