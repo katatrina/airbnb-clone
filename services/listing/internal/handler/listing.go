@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/katatrina/airbnb-clone/pkg/response"
 	"github.com/katatrina/airbnb-clone/pkg/validator"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/constant"
@@ -14,11 +15,37 @@ import (
 )
 
 func (h *ListingHandler) ListActiveListings(c *gin.Context) {
-	panic("not implemented")
+	listings, err := h.listingService.ListActiveListings(c.Request.Context())
+	if err != nil {
+		log.Printf("[ERROR] failed to list active listings: %v", err)
+		response.InternalServerError(c)
+		return
+	}
+
+	response.OK(c, NewListingsResponse(listings))
 }
 
 func (h *ListingHandler) GetListingByID(c *gin.Context) {
-	panic("not implemented")
+	listingID := c.Param("id")
+
+	if _, err := uuid.Parse(listingID); err != nil {
+		response.BadRequest(c, response.CodeValidationFailed, "Invalid listing ID format")
+		return
+	}
+
+	listing, err := h.listingService.GetActiveListingByID(c.Request.Context(), listingID)
+	if err != nil {
+		if errors.Is(err, model.ErrListingNotFound) {
+			response.NotFound(c, fmt.Sprintf("Listing with ID %s not found", listingID))
+			return
+		}
+
+		log.Printf("[ERROR] failed to get listing by ID: %v", err)
+		response.InternalServerError(c)
+		return
+	}
+
+	response.OK(c, NewListingResponse(listing))
 }
 
 func (h *ListingHandler) CreateListing(c *gin.Context) {

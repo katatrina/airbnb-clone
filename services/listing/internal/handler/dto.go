@@ -4,10 +4,10 @@ import "github.com/katatrina/airbnb-clone/services/listing/internal/model"
 
 type CreateListingRequest struct {
 	Title         string `json:"title" binding:"required,min=10,max=200" normalize:"trim,singlespace"`
-	Description   string `json:"description" binding:"omitempty,max=2000" normalize:"trim"`
+	Description   string `json:"description" binding:"omitempty,max=2000" normalize:"trim,singlespace"`
 	PricePerNight int64  `json:"pricePerNight" binding:"required,gte=1"`
-	ProvinceCode  string `json:"provinceCode" binding:"required"`
-	WardCode      string `json:"wardCode" binding:"required"`
+	ProvinceCode  string `json:"provinceCode" binding:"required" normalize:"trim"`
+	WardCode      string `json:"wardCode" binding:"required" normalize:"trim"`
 	AddressDetail string `json:"addressDetail" binding:"required,min=10,max=500" normalize:"trim,singlespace"`
 }
 
@@ -54,4 +54,12 @@ func NewListingResponse(listing *model.Listing) *ListingResponse {
 		CreatedAt:     listing.CreatedAt.Unix(),
 		UpdatedAt:     listing.UpdatedAt.Unix(),
 	}
+}
+
+func NewListingsResponse(listings []model.Listing) []ListingResponse {
+	resp := make([]ListingResponse, len(listings))
+	for i, listing := range listings {
+		resp[i] = *NewListingResponse(&listing)
+	}
+	return resp
 }

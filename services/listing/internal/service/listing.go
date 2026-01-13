@@ -48,3 +48,25 @@ func (s *ListingService) CreateListing(ctx context.Context, arg CreateListingPar
 
 	return &listing, nil
 }
+
+func (s *ListingService) GetActiveListingByID(ctx context.Context, listingID string) (*model.Listing, error) {
+	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
+	if err != nil {
+		return nil, err
+	}
+
+	if listing.Status != model.ListingStatusActive {
+		return nil, model.ErrListingNotFound
+	}
+
+	return listing, nil
+}
+
+func (s *ListingService) ListActiveListings(ctx context.Context) ([]model.Listing, error) {
+	listings, err := s.listingRepo.ListListingsByStatus(ctx, model.ListingStatusActive)
+	if err != nil {
+		return nil, err
+	}
+
+	return listings, nil
+}
