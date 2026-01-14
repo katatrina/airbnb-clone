@@ -7,22 +7,28 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/katatrina/airbnb-clone/pkg/request"
 	"github.com/katatrina/airbnb-clone/pkg/response"
-	"github.com/katatrina/airbnb-clone/pkg/validator"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/constant"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/model"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/service"
 )
 
 func (h *ListingHandler) ListActiveListings(c *gin.Context) {
-	listings, err := h.listingService.ListActiveListings(c.Request.Context())
+	paginationParams := request.ParsePaginationParams(c)
+
+	listings, total, err := h.listingService.ListActiveListings(
+		c.Request.Context(),
+		paginationParams.Limit(),
+		paginationParams.Offset(),
+	)
 	if err != nil {
 		log.Printf("[ERROR] failed to list active listings: %v", err)
 		response.InternalServerError(c)
 		return
 	}
 
-	response.OK(c, NewListingsResponse(listings))
+	response.OKWithPagination(c, NewListingsResponse(listings), paginationParams.Page, paginationParams.PageSize, total)
 }
 
 func (h *ListingHandler) GetListingByID(c *gin.Context) {
@@ -53,7 +59,7 @@ func (h *ListingHandler) CreateListing(c *gin.Context) {
 
 	var req CreateListingRequest
 
-	if err := validator.ShouldBindJSON(c, &req); err != nil {
+	if err := request.ShouldBindJSON(c, &req); err != nil {
 		response.HandleJSONBindingError(c, err)
 		return
 	}

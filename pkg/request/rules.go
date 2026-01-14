@@ -1,4 +1,4 @@
-package validator
+package request
 
 import (
 	"strconv"
@@ -6,7 +6,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func registerRules() {
+func registerCustomRules() {
 	_ = validate.RegisterValidation("maxbytes", validateMaxBytes)
 	registerTranslation("maxbytes", "{0} is too long")
 }

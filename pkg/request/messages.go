@@ -1,11 +1,11 @@
-package validator
+package request
 
 import (
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 )
 
-func registerMessages() {
+func registerCustomMessages() {
 	messages := map[string]string{
 		"required": "{0} is required",
 		"email":    "{0} must be a valid email address",

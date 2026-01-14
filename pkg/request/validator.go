@@ -1,5 +1,5 @@
-// Package validator provides request validation and normalization.
-package validator
+// Package request provides request validation, normalization, and pagination.
+package request
 
 import (
 	"reflect"
@@ -60,8 +60,8 @@ func init() {
 		return name
 	})
 
-	registerMessages()
-	registerRules()
+	registerCustomMessages()
+	registerCustomRules()
 }
 
 // TranslateValidationErrors converts validator.ValidationErrors to a slice of FieldError.

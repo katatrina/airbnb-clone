@@ -21,30 +21,31 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/katatrina/airbnb-clone/pkg/validator"
+	"github.com/katatrina/airbnb-clone/pkg/request"
 )
 
 // Response is the standard structure for all API responses.
 type Response struct {
-	Success bool                   `json:"success"`
-	Code    ErrorCode              `json:"code"`
-	Message string                 `json:"message"`
-	Data    any                    `json:"data,omitempty"`
-	Meta    *Meta                  `json:"meta,omitempty"`
-	Errors  []validator.FieldError `json:"errors,omitempty"`
+	Success bool                 `json:"success"`          // Indicates if request was successful
+	Code    ErrorCode            `json:"code"`             // Machine-readable error/success code
+	Message string               `json:"message"`          // Human-readable message
+	Data    any                  `json:"data,omitempty"`   // Response payload (only for successful requests)
+	Meta    Meta                 `json:"meta"`             // Response metadata (always present)
+	Errors  []request.FieldError `json:"errors,omitempty"` // Field validation errors
 }
 
 // Meta contains metadata about the response.
+// This is always present in the response, even if some fields are empty.
 type Meta struct {
-	RequestID  string      `json:"requestId"`
-	Timestamp  int64       `json:"timestamp"`
-	Pagination *Pagination `json:"pagination,omitempty"`
+	RequestID  string      `json:"requestId"`            // Unique request identifier for tracing
+	Timestamp  int64       `json:"timestamp"`            // Server timestamp (Unix epoch)
+	Pagination *Pagination `json:"pagination,omitempty"` // Pagination info (only for list endpoints)
 }
 
 // Pagination contains pagination metadata.
 type Pagination struct {
 	Page       int   `json:"page"`       // Current page number (1-indexed)
-	PerPage    int   `json:"perPage"`    // Items per page
+	PageSize   int   `json:"pageSize"`   // Items per page
 	Total      int64 `json:"total"`      // Total number of items
 	TotalPages int   `json:"totalPages"` // Total number of pages
 }
@@ -63,7 +64,7 @@ type Builder struct {
 func New() *Builder {
 	return &Builder{
 		resp: Response{
-			Meta: &Meta{
+			Meta: Meta{
 				RequestID: uuid.NewString(),
 				Timestamp: time.Now().Unix(),
 			},
@@ -95,22 +96,25 @@ func (b *Builder) Error(code ErrorCode, message string) *Builder {
 }
 
 // WithErrors adds field-level validation errors.
-func (b *Builder) WithErrors(errors []validator.FieldError) *Builder {
+func (b *Builder) WithErrors(errors []request.FieldError) *Builder {
 	b.resp.Errors = errors
 	return b
 }
 
 // WithPagination adds pagination metadata.
-func (b *Builder) WithPagination(page, perPage int, total int64) *Builder {
-	// TODO: understand pagination logic
-	totalPages := int(total) / perPage
-	if int(total)%perPage > 0 {
-		totalPages++
+// This should only be called for list endpoints.
+func (b *Builder) WithPagination(page, pageSize int, total int64) *Builder {
+	totalPages := 0
+	if total > 0 {
+		totalPages = int(total) / pageSize
+		if int(total)%pageSize > 0 {
+			totalPages++
+		}
 	}
 
 	b.resp.Meta.Pagination = &Pagination{
 		Page:       page,
-		PerPage:    perPage,
+		PageSize:   pageSize,
 		Total:      total,
 		TotalPages: totalPages,
 	}

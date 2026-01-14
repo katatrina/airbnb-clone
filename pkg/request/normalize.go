@@ -1,11 +1,12 @@
-package validator
+package request
 
 import (
 	"reflect"
 	"strings"
 )
 
-// NormalizeStruct applies normalization from tags
+// NormalizeStruct applies normalization rules from struct field tags.
+// Supported rules: trim, lower, upper, singlespace.
 func NormalizeStruct(s interface{}) {
 	v := reflect.ValueOf(s)
 	if v.Kind() == reflect.Ptr {

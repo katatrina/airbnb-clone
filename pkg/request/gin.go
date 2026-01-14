@@ -1,12 +1,21 @@
-package validator
+package request
 
 import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+// ParsePaginationParams extracts page and pageSize from query parameters.
+func ParsePaginationParams(c *gin.Context) PaginationParams {
+	page, _ := strconv.Atoi(c.DefaultQuery("page", strconv.Itoa(DefaultPage)))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", strconv.Itoa(DefaultPageSize)))
+
+	return NewPaginationParams(page, pageSize)
+}
 
 // ShouldBindJSON binds JSON request body to obj, normalizes it, then validates.
 //
@@ -20,22 +29,18 @@ import (
 //	    return
 //	}
 func ShouldBindJSON(c *gin.Context, obj interface{}) error {
-	// Read body and allow re-reading
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		return err
 	}
 	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 
-	// Bind JSON without validation
-	if err := json.Unmarshal(body, obj); err != nil {
+	if err = json.Unmarshal(body, obj); err != nil {
 		return err
 	}
 
-	// Normalize first
 	NormalizeStruct(obj)
 
-	// Then validate (now with normalized values)
 	if err = validate.Struct(obj); err != nil {
 		return err
 	}

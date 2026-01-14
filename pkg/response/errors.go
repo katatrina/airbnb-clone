@@ -1,5 +1,6 @@
 package response
 
+// ErrorCode represents machine-readable API error codes.
 type ErrorCode string
 
 const (

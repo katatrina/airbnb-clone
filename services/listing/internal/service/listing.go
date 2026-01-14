@@ -62,11 +62,16 @@ func (s *ListingService) GetActiveListingByID(ctx context.Context, listingID str
 	return listing, nil
 }
 
-func (s *ListingService) ListActiveListings(ctx context.Context) ([]model.Listing, error) {
-	listings, err := s.listingRepo.ListListingsByStatus(ctx, model.ListingStatusActive)
+func (s *ListingService) ListActiveListings(ctx context.Context, limit, offset int) ([]model.Listing, int64, error) {
+	listings, err := s.listingRepo.ListListingsByStatus(ctx, model.ListingStatusActive, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return listings, nil
+	total, err := s.listingRepo.CountListingSByStatus(ctx, model.ListingStatusActive)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return listings, total, nil
 }

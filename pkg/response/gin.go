@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	validatorV10 "github.com/go-playground/validator/v10"
-	"github.com/katatrina/airbnb-clone/pkg/validator"
+	"github.com/katatrina/airbnb-clone/pkg/request"
 )
 
 // ============ Success responses ============
@@ -22,8 +22,8 @@ func Created(c *gin.Context, data any) {
 }
 
 // OKWithPagination sends a 200 response with pagination metadata.
-func OKWithPagination(c *gin.Context, data any, page, perPage int, total int64) {
-	c.JSON(http.StatusOK, New().Success(data).WithPagination(page, perPage, total).Build())
+func OKWithPagination(c *gin.Context, data any, page, pageSize int, total int64) {
+	c.JSON(http.StatusOK, New().Success(data).WithPagination(page, pageSize, total).Build())
 }
 
 // NoContent sends a 204 response with no body.
@@ -39,7 +39,7 @@ func BadRequest(c *gin.Context, code ErrorCode, message string) {
 }
 
 // BadRequestWithErrors sends a 400 response with field-level errors.
-func BadRequestWithErrors(c *gin.Context, code ErrorCode, message string, errors []validator.FieldError) {
+func BadRequestWithErrors(c *gin.Context, code ErrorCode, message string, errors []request.FieldError) {
 	c.JSON(http.StatusBadRequest, New().Error(code, message).WithErrors(errors).Build())
 }
 
@@ -62,7 +62,7 @@ func Conflict(c *gin.Context, code ErrorCode, message string) {
 // Never expose internal details to client.
 func InternalServerError(c *gin.Context) {
 	c.JSON(http.StatusInternalServerError,
-		New().Error(CodeInternalServerError, "Internal server error. Please try again later.").Build(),
+		New().Error(CodeInternalServerError, "Internal server error. Please try again later").Build(),
 	)
 }
 
@@ -79,14 +79,12 @@ func InternalServerError(c *gin.Context) {
 //	    return
 //	}
 func HandleJSONBindingError(c *gin.Context, err error) {
-	// Validation errors
 	var validationErrors validatorV10.ValidationErrors
 	if errors.As(err, &validationErrors) {
-		fieldErrors := validator.TranslateValidationErrors(validationErrors)
+		fieldErrors := request.TranslateValidationErrors(validationErrors)
 		BadRequestWithErrors(c, CodeValidationFailed, "Validation failed", fieldErrors)
 		return
 	}
 
-	// JSON parsing errors or other errors
 	BadRequest(c, CodeJSONFormatInvalid, "Request body must be valid JSON")
 }

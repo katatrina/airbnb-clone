@@ -63,7 +63,12 @@ func (r *ListingRepository) FindListingByID(ctx context.Context, id string) (*mo
 	return &listing, nil
 }
 
-func (r *ListingRepository) ListListingsByStatus(ctx context.Context, status model.ListingStatus) ([]model.Listing, error) {
+func (r *ListingRepository) ListListingsByStatus(
+	ctx context.Context,
+	status model.ListingStatus,
+	limit,
+	offset int,
+) ([]model.Listing, error) {
 	query := `
 		SELECT
 			id, host_id, title, description, price_per_night, currency,
@@ -72,13 +77,32 @@ func (r *ListingRepository) ListListingsByStatus(ctx context.Context, status mod
 		FROM listings
 		WHERE status = $1 AND deleted_at IS NULL
 		ORDER BY created_at DESC
+		LIMIT $2 OFFSET $3
 	`
-
-	rows, _ := r.db.Query(ctx, query, status)
+	rows, _ := r.db.Query(ctx, query, status, limit, offset)
 	listings, err := pgx.CollectRows(rows, pgx.RowToStructByName[model.Listing])
 	if err != nil {
 		return nil, err
 	}
 
 	return listings, nil
+}
+
+func (r *ListingRepository) CountListingSByStatus(
+	ctx context.Context,
+	status model.ListingStatus,
+) (int64, error) {
+	query := `
+		SELECT COUNT(*)
+		FROM listings
+		WHERE status = $1 AND deleted_at IS NULL
+	`
+
+	var count int64
+	err := r.db.QueryRow(ctx, query, status).Scan(&count)
+	if err != nil {
+		return 0, nil
+	}
+
+	return count, nil
 }
