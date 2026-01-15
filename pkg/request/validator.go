@@ -6,7 +6,6 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
@@ -39,20 +38,14 @@ type FieldError struct {
 }
 
 func init() {
-	v, ok := binding.Validator.Engine().(*validator.Validate)
-	if !ok {
-		panic("failed to get validator engine")
-	}
-	validate = v
-
-	// Setup translator
+	validate = validator.New()
+	
 	enLocale := en.New()
 	uni := ut.New(enLocale, enLocale)
 	trans, _ = uni.GetTranslator("en")
-	_ = enTranslations.RegisterDefaultTranslations(v, trans)
+	_ = enTranslations.RegisterDefaultTranslations(validate, trans)
 
-	// Use JSON tag name
-	v.RegisterTagNameFunc(func(field reflect.StructField) string {
+	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
 		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
 		if name == "-" {
 			return field.Name

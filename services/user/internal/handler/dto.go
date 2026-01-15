@@ -2,18 +2,18 @@ package handler
 
 type RegisterRequest struct {
 	// Lowercase to prevent duplicates
-	Email string `json:"email" binding:"required,email,max=255" normalize:"trim,lower"`
+	Email string `json:"email" validate:"required,email,max=255" normalize:"trim,lower"`
 
 	// Min 8 chars, max 72 bytes (bcrypt limit)
-	Password string `json:"password" binding:"required,min=8,maxbytes=72"`
+	Password string `json:"password" validate:"required,min=8,maxbytes=72"`
 
 	// Public display name
-	DisplayName string `json:"displayName" binding:"required,min=2,max=100" normalize:"trim,singlespace"`
+	DisplayName string `json:"displayName" validate:"required,min=2,max=100" normalize:"trim,singlespace"`
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email" normalize:"trim,lower"`
-	Password string `json:"password" binding:"required"`
+	Email    string `json:"email" validate:"required,email" normalize:"trim,lower"`
+	Password string `json:"password" validate:"required"`
 	// Password: NO min/max validation on login (accept any length)
 	// User might have old password before we added min=8 rule
 }
