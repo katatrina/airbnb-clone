@@ -24,7 +24,7 @@ func ParsePaginationParams(c *gin.Context) PaginationParams {
 // Usage:
 //
 //	var req RegisterRequest
-//	if err := validator.ShouldBindJSON(c, &req); err != nil {
+//	if err := request.ShouldBindJSON(c, &req); err != nil {
 //	    response.HandleJSONBindingError(c, err)
 //	    return
 //	}
@@ -39,7 +39,7 @@ func ShouldBindJSON(c *gin.Context, obj interface{}) error {
 		return err
 	}
 
-	NormalizeStruct(obj)
+	NormalizeStrings(obj)
 
 	if err = validate.Struct(obj); err != nil {
 		return err

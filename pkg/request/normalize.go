@@ -5,9 +5,10 @@ import (
 	"strings"
 )
 
-// NormalizeStruct applies normalization rules from struct field tags.
+// NormalizeStrings applies normalization rules to string and *string fields.
 // Supported rules: trim, lower, upper, singlespace.
-func NormalizeStruct(s interface{}) {
+// Currently it does not support nested struct.
+func NormalizeStrings(s interface{}) {
 	v := reflect.ValueOf(s)
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
@@ -19,19 +20,27 @@ func NormalizeStruct(s interface{}) {
 	t := v.Type()
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
-		if !field.CanSet() {
+		tag := t.Field(i).Tag.Get("normalize")
+		if tag == "" || !field.CanSet() {
 			continue
 		}
 
-		normalizeTag := t.Field(i).Tag.Get("normalize")
-		if normalizeTag == "" || field.Kind() != reflect.String {
+		// Get string value (supports string and *string)
+		var str string
+		isPtr := field.Kind() == reflect.Ptr
+		if isPtr {
+			if field.IsNil() || field.Elem().Kind() != reflect.String {
+				continue
+			}
+			str = field.Elem().String()
+		} else if field.Kind() == reflect.String {
+			str = field.String()
+		} else {
 			continue
 		}
 
-		str := field.String()
-		rules := strings.Split(normalizeTag, ",")
-
-		for _, rule := range rules {
+		// Apply rules
+		for _, rule := range strings.Split(tag, ",") {
 			switch strings.TrimSpace(rule) {
 			case "trim":
 				str = strings.TrimSpace(str)
@@ -44,6 +53,12 @@ func NormalizeStruct(s interface{}) {
 			}
 		}
 
-		field.SetString(str)
+		// Set value back
+		if isPtr {
+			field.Elem().SetString(str)
+		} else {
+			field.SetString(str)
+		}
 	}
 }
+

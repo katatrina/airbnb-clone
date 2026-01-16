@@ -3,12 +3,12 @@ package handler
 import "github.com/katatrina/airbnb-clone/services/listing/internal/model"
 
 type CreateListingRequest struct {
-	Title         string  `json:"title" validate:"required,min=10,max=200" normalize:"trim,singlespace"`
-	Description   *string `json:"description" validate:"omitempty,max=2000" normalize:"trim,singlespace"`
-	PricePerNight *int64  `json:"pricePerNight" validate:"omitempty,gte=1"`
-	ProvinceCode  *string `json:"provinceCode" validate:"omitempty" normalize:"trim"`
-	WardCode      *string `json:"wardCode" validate:"omitempty" normalize:"trim"`
-	AddressDetail *string `json:"addressDetail" validate:"omitempty,min=10,max=500" normalize:"trim,singlespace"`
+	Title         string `json:"title" validate:"required,min=10,max=200" normalize:"trim,singlespace"`
+	Description   string `json:"description" validate:"omitempty,max=2000" normalize:"trim,singlespace"`
+	PricePerNight int64  `json:"pricePerNight" validate:"gte=1"`
+	ProvinceCode  string `json:"provinceCode" normalize:"trim"`
+	WardCode      string `json:"wardCode" normalize:"trim"`
+	AddressDetail string `json:"addressDetail" validate:"min=10,max=500" normalize:"trim,singlespace"`
 }
 
 type ListingResponse struct {

@@ -39,7 +39,7 @@ type FieldError struct {
 
 func init() {
 	validate = validator.New()
-	
+
 	enLocale := en.New()
 	uni := ut.New(enLocale, enLocale)
 	trans, _ = uni.GetTranslator("en")
