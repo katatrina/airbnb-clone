@@ -56,7 +56,8 @@ func main() {
 			public.GET("/listings", listingHandler.ListActiveListings)
 			public.GET("/listings/:id", listingHandler.GetListingByID)
 			public.GET("/provinces", listingHandler.ListProvinces)
-			public.GET("/wards", listingHandler.ListWardsByProvince)
+			public.GET("/districts", listingHandler.ListDistrictsByProvince)
+			public.GET("/wards", listingHandler.ListWardsByDistrict)
 		}
 
 		protected := v1.Group("").Use(middleware.AuthMiddleware(tokenMaker))

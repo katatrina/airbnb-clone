@@ -70,6 +70,7 @@ func (h *ListingHandler) CreateListing(c *gin.Context) {
 		Description:   req.Description,
 		PricePerNight: req.PricePerNight,
 		ProvinceCode:  req.ProvinceCode,
+		DistrictCode:  req.DistrictCode,
 		WardCode:      req.WardCode,
 		AddressDetail: req.AddressDetail,
 	})
@@ -77,10 +78,14 @@ func (h *ListingHandler) CreateListing(c *gin.Context) {
 		switch {
 		case errors.Is(err, model.ErrProvinceCodeNotFound):
 			response.BadRequest(c, response.CodeResourceNotFound, fmt.Sprintf("Province code %s not found", req.ProvinceCode))
+		case errors.Is(err, model.ErrDistrictCodeNotFound):
+			response.BadRequest(c, response.CodeResourceNotFound, fmt.Sprintf("District code %s not found", req.DistrictCode))
 		case errors.Is(err, model.ErrWardCodeNotFound):
 			response.BadRequest(c, response.CodeResourceNotFound, fmt.Sprintf("Ward code %s not found", req.WardCode))
-		case errors.Is(err, model.ErrWardProvinceMismatch):
-			response.BadRequest(c, response.CodeReferenceInvalid, fmt.Sprintf("Ward with code %s does not belong to province with code %s", req.WardCode, req.ProvinceCode))
+		case errors.Is(err, model.ErrDistrictProvinceMismatch):
+			response.BadRequest(c, response.CodeReferenceInvalid, fmt.Sprintf("District with code %s does not belong to province with code %s", req.DistrictCode, req.ProvinceCode))
+		case errors.Is(err, model.ErrWardDistrictMismatch):
+			response.BadRequest(c, response.CodeReferenceInvalid, fmt.Sprintf("Ward with code %s does not belong to district with code %s", req.WardCode, req.DistrictCode))
 		default:
 			log.Printf("[ERROR] failed to create listing: %v", err)
 			response.InternalServerError(c)

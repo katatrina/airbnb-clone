@@ -6,6 +6,7 @@ type CreateListingParams struct {
 	Description   string
 	PricePerNight int64
 	ProvinceCode  string
+	DistrictCode  string
 	WardCode      string
 	AddressDetail string
 }

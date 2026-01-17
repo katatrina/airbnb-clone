@@ -1,2 +1,0 @@
-DROP TABLE IF EXISTS wards;
-DROP TABLE IF EXISTS provinces;

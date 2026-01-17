@@ -29,21 +29,52 @@ func (h *ListingHandler) ListProvinces(c *gin.Context) {
 	response.OK(c, resp)
 }
 
-func (h *ListingHandler) ListWardsByProvince(c *gin.Context) {
+func (h *ListingHandler) ListDistrictsByProvince(c *gin.Context) {
 	provinceCode := c.Query("provinceCode")
 	if provinceCode == "" {
 		response.BadRequest(c, response.CodeValidationFailed, "provinceCode is required")
 		return
 	}
 
-	wards, err := h.listingService.ListWardsByProvince(c.Request.Context(), provinceCode)
+	districts, err := h.listingService.ListDistrictsByProvince(c.Request.Context(), provinceCode)
 	if err != nil {
 		if errors.Is(err, model.ErrProvinceCodeNotFound) {
 			response.NotFound(c, fmt.Sprintf("Province code %s not found", provinceCode))
 			return
 		}
 
-		log.Printf("[ERROR] failed to get wards by province code: %v", err)
+		log.Printf("[ERROR] failed to get districts by province code: %v", err)
+		response.InternalServerError(c)
+		return
+	}
+
+	resp := make([]DistrictResponse, len(districts))
+	for i, d := range districts {
+		resp[i] = DistrictResponse{
+			Code:         d.Code,
+			FullName:     d.FullName,
+			ProvinceCode: d.ProvinceCode,
+		}
+	}
+
+	response.OK(c, resp)
+}
+
+func (h *ListingHandler) ListWardsByDistrict(c *gin.Context) {
+	districtCode := c.Query("districtCode")
+	if districtCode == "" {
+		response.BadRequest(c, response.CodeValidationFailed, "districtCode is required")
+		return
+	}
+
+	wards, err := h.listingService.ListWardsByDistrict(c.Request.Context(), districtCode)
+	if err != nil {
+		if errors.Is(err, model.ErrDistrictCodeNotFound) {
+			response.NotFound(c, fmt.Sprintf("District code %s not found", districtCode))
+			return
+		}
+
+		log.Printf("[ERROR] failed to get wards by district code: %v", err)
 		response.InternalServerError(c)
 		return
 	}
@@ -53,7 +84,7 @@ func (h *ListingHandler) ListWardsByProvince(c *gin.Context) {
 		resp[i] = WardResponse{
 			Code:         w.Code,
 			FullName:     w.FullName,
-			ProvinceCode: w.ProvinceCode,
+			DistrictCode: w.DistrictCode,
 		}
 	}
 

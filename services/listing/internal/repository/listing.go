@@ -12,12 +12,14 @@ func (r *ListingRepository) CreateListing(ctx context.Context, listing model.Lis
 	query := `
 		INSERT INTO listings (
 			id, host_id, title, description, price_per_night, currency,
-			province_code, province_name, ward_code, ward_name,
-			address_detail, status, created_at, updated_at, deleted_at
+			province_code, province_name, district_code, district_name,
+			ward_code, ward_name, address_detail, 
+			status, created_at, updated_at, deleted_at
 		) VALUES (
 			$1, $2, $3, $4, $5, $6,
 			$7, $8, $9, $10,
-			$11, $12, $13, $14, $15
+			$11, $12, $13,
+			$14, $15, $16, $17
 		)
 	`
 
@@ -30,6 +32,8 @@ func (r *ListingRepository) CreateListing(ctx context.Context, listing model.Lis
 		listing.Currency,
 		listing.ProvinceCode,
 		listing.ProvinceName,
+		listing.DistrictCode,
+		listing.DistrictName,
 		listing.WardCode,
 		listing.WardName,
 		listing.AddressDetail,
@@ -45,8 +49,9 @@ func (r *ListingRepository) FindListingByID(ctx context.Context, id string) (*mo
 	query := `
 		SELECT
 			id, host_id, title, description, price_per_night, currency,
-			province_code, province_name, ward_code, ward_name,
-			address_detail, status, created_at, updated_at, deleted_at
+			province_code, province_name, district_code, district_name,
+			ward_code, ward_name, address_detail,
+			status, created_at, updated_at, deleted_at
 		FROM listings
 		WHERE id = $1 AND deleted_at IS NULL
 	`
@@ -72,8 +77,9 @@ func (r *ListingRepository) ListListingsByStatus(
 	query := `
 		SELECT
 			id, host_id, title, description, price_per_night, currency,
-			province_code, province_name, ward_code, ward_name,
-			address_detail, status, created_at, updated_at, deleted_at
+			province_code, province_name, district_code, district_name,
+			ward_code, ward_name, address_detail,
+			status, created_at, updated_at, deleted_at
 		FROM listings
 		WHERE status = $1 AND deleted_at IS NULL
 		ORDER BY created_at DESC

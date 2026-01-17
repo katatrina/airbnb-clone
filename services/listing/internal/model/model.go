@@ -26,6 +26,8 @@ type Listing struct {
 	Currency      ListingCurrency `db:"currency"`
 	ProvinceCode  string          `db:"province_code"`
 	ProvinceName  string          `db:"province_name"`
+	DistrictCode  string          `db:"district_code"`
+	DistrictName  string          `db:"district_name"`
 	WardCode      string          `db:"ward_code"`
 	WardName      string          `db:"ward_name"`
 	AddressDetail string          `db:"address_detail"`
@@ -41,9 +43,16 @@ type Province struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
-type Ward struct {
-	Code         string    `db:"code" `
-	FullName     string    `db:"full_name" `
+type District struct {
+	Code         string    `db:"code"`
+	FullName     string    `db:"full_name"`
 	ProvinceCode string    `db:"province_code"`
+	CreatedAt    time.Time `db:"created_at"`
+}
+
+type Ward struct {
+	Code         string    `db:"code"`
+	FullName     string    `db:"full_name"`
+	DistrictCode string    `db:"district_code"`
 	CreatedAt    time.Time `db:"created_at"`
 }
