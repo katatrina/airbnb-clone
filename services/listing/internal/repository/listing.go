@@ -112,3 +112,22 @@ func (r *ListingRepository) CountListingSByStatus(
 
 	return count, nil
 }
+
+func (r *ListingRepository) UpdateListingStatus(ctx context.Context, id string, status model.ListingStatus) error {
+	query := `
+		UPDATE listings 
+		SET status = $1, updated_at = NOW() 
+		WHERE id = $2 AND deleted_at IS NULL
+	`
+
+	result, err := r.db.Exec(ctx, query, status, id)
+	if err != nil {
+		return err
+	}
+
+	if result.RowsAffected() == 0 {
+		return model.ErrListingNotFound
+	}
+
+	return nil
+}

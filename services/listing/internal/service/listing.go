@@ -3,36 +3,32 @@ package service
 import (
 	"context"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/model"
 )
 
 func (s *ListingService) CreateListing(ctx context.Context, arg CreateListingParams) (*model.Listing, error) {
-	// Validate Province
-	province, err := s.listingRepo.GetProvinceByCode(ctx, arg.ProvinceCode)
+	province, err := s.listingRepo.FindProvinceByCode(ctx, arg.ProvinceCode)
 	if err != nil {
 		return nil, err
 	}
 
-	// Validate District
-	district, err := s.listingRepo.GetDistrictByCode(ctx, arg.DistrictCode)
+	district, err := s.listingRepo.FindDistrictByCode(ctx, arg.DistrictCode)
 	if err != nil {
 		return nil, err
 	}
 
-	// Validate District belongs to Province
 	if district.ProvinceCode != province.Code {
 		return nil, model.ErrDistrictProvinceMismatch
 	}
 
-	// Validate Ward
-	ward, err := s.listingRepo.GetWardByCode(ctx, arg.WardCode)
+	ward, err := s.listingRepo.FindWardByCode(ctx, arg.WardCode)
 	if err != nil {
 		return nil, err
 	}
 
-	// Validate Ward belongs to District
 	if ward.DistrictCode != district.Code {
 		return nil, model.ErrWardDistrictMismatch
 	}
@@ -65,8 +61,8 @@ func (s *ListingService) CreateListing(ctx context.Context, arg CreateListingPar
 	return &listing, nil
 }
 
-func (s *ListingService) GetActiveListingByID(ctx context.Context, listingID string) (*model.Listing, error) {
-	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
+func (s *ListingService) GetActiveListingByID(ctx context.Context, id string) (*model.Listing, error) {
+	listing, err := s.listingRepo.FindListingByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -90,4 +86,31 @@ func (s *ListingService) ListActiveListings(ctx context.Context, limit, offset i
 	}
 
 	return listings, total, nil
+}
+
+func (s *ListingService) PublishListing(ctx context.Context, listingID, userID string) (*model.Listing, error) {
+	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
+	if err != nil {
+		return nil, err
+	}
+
+	if listing.HostID != userID {
+		return nil, model.ErrListingOwnerMismatch
+	}
+
+	if listing.Status != model.ListingStatusDraft {
+		return nil, model.ErrListingNotDraft
+	}
+
+	if utf8.RuneCountInString(listing.Description) < 50 {
+		return nil, model.ErrListingIncomplete
+	}
+
+	err = s.listingRepo.UpdateListingStatus(ctx, listingID, model.ListingStatusActive)
+	if err != nil {
+		return nil, err
+	}
+	listing.Status = model.ListingStatusActive
+
+	return listing, nil
 }

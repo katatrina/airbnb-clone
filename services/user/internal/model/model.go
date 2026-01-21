@@ -3,13 +3,13 @@ package model
 import "time"
 
 type User struct {
-	ID            string     `repository:"id"`
-	DisplayName   string     `repository:"display_name"`
-	Email         string     `repository:"email"`
-	PasswordHash  string     `repository:"password_hash"`
-	EmailVerified bool       `repository:"email_verified"`
-	LastLoginAt   *time.Time `repository:"last_login_at"`
-	CreatedAt     time.Time  `repository:"created_at"`
-	UpdatedAt     time.Time  `repository:"updated_at"`
-	DeletedAt     *time.Time `repository:"deleted_at"`
+	ID            string     `db:"id"`
+	DisplayName   string     `db:"display_name"`
+	Email         string     `db:"email"`
+	PasswordHash  string     `db:"password_hash"`
+	EmailVerified bool       `db:"email_verified"`
+	LastLoginAt   *time.Time `db:"last_login_at"`
+	CreatedAt     time.Time  `db:"created_at"`
+	UpdatedAt     time.Time  `db:"updated_at"`
+	DeletedAt     *time.Time `db:"deleted_at"`
 }

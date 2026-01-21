@@ -7,7 +7,7 @@ const (
 	CodeSuccess ErrorCode = "OK"
 
 	// Validation & Format (400)
-	CodeValidationFailed  ErrorCode = "VALIDATION_FAILED" // All input validation errors (body, URL, query)
+	CodeValidationFailed  ErrorCode = "VALIDATION_FAILED" // All input validation errors (body, URL, query) and invalid states
 	CodeJSONFormatInvalid ErrorCode = "INVALID_JSON_FORMAT"
 	CodeReferenceInvalid  ErrorCode = "INVALID_REFERENCE" // Foreign key, relationship
 

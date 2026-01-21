@@ -8,7 +8,7 @@ import (
 	"github.com/katatrina/airbnb-clone/services/listing/internal/model"
 )
 
-func (r *ListingRepository) GetProvinceByCode(ctx context.Context, code string) (*model.Province, error) {
+func (r *ListingRepository) FindProvinceByCode(ctx context.Context, code string) (*model.Province, error) {
 	query := `
 		SELECT code, full_name, created_at
 		FROM provinces
@@ -27,7 +27,7 @@ func (r *ListingRepository) GetProvinceByCode(ctx context.Context, code string) 
 	return &province, nil
 }
 
-func (r *ListingRepository) GetDistrictByCode(ctx context.Context, code string) (*model.District, error) {
+func (r *ListingRepository) FindDistrictByCode(ctx context.Context, code string) (*model.District, error) {
 	query := `
 		SELECT code, full_name, province_code, created_at
 		FROM districts
@@ -46,7 +46,7 @@ func (r *ListingRepository) GetDistrictByCode(ctx context.Context, code string) 
 	return &district, nil
 }
 
-func (r *ListingRepository) GetWardByCode(ctx context.Context, code string) (*model.Ward, error) {
+func (r *ListingRepository) FindWardByCode(ctx context.Context, code string) (*model.Ward, error) {
 	query := `
 		SELECT code, full_name, district_code, created_at
 		FROM wards

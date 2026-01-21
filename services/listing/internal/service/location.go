@@ -11,7 +11,7 @@ func (s *ListingService) ListProvinces(ctx context.Context) ([]model.Province, e
 }
 
 func (s *ListingService) ListDistrictsByProvince(ctx context.Context, provinceCode string) ([]model.District, error) {
-	_, err := s.listingRepo.GetProvinceByCode(ctx, provinceCode)
+	_, err := s.listingRepo.FindProvinceByCode(ctx, provinceCode)
 	if err != nil {
 		return nil, err
 	}
@@ -20,7 +20,7 @@ func (s *ListingService) ListDistrictsByProvince(ctx context.Context, provinceCo
 }
 
 func (s *ListingService) ListWardsByDistrict(ctx context.Context, districtCode string) ([]model.Ward, error) {
-	_, err := s.listingRepo.GetDistrictByCode(ctx, districtCode)
+	_, err := s.listingRepo.FindDistrictByCode(ctx, districtCode)
 	if err != nil {
 		return nil, err
 	}
