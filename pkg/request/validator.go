@@ -1,4 +1,3 @@
-// Package request provides request validation, normalization, and pagination.
 package request
 
 import (
@@ -23,10 +22,9 @@ type FieldErrorCode string
 const (
 	FieldCodeRequired      FieldErrorCode = "REQUIRED"
 	FieldCodeInvalidFormat FieldErrorCode = "INVALID_FORMAT"
-	FieldCodeTooShort      FieldErrorCode = "TOO_SHORT"
-	FieldCodeTooLong       FieldErrorCode = "TOO_LONG"
 	FieldCodeMinValue      FieldErrorCode = "MIN_VALUE"
 	FieldCodeMaxValue      FieldErrorCode = "MAX_VALUE"
+	FieldCodeTooLong       FieldErrorCode = "TOO_LONG"
 )
 
 // FieldError represents a validation error for a specific field.
@@ -79,14 +77,12 @@ func mapValidationTag(tag string) FieldErrorCode {
 		return FieldCodeRequired
 	case "email":
 		return FieldCodeInvalidFormat
-	case "min":
-		return FieldCodeTooShort
-	case "max", "maxbytes":
-		return FieldCodeTooLong
-	case "gte":
+	case "min", "gte":
 		return FieldCodeMinValue
-	case "lte":
+	case "max", "lte":
 		return FieldCodeMaxValue
+	case "maxbytes":
+		return FieldCodeTooLong
 	default:
 		return FieldErrorCode(strings.ToUpper(tag))
 	}

@@ -6,5 +6,5 @@ import (
 )
 
 func (h *UserHandler) Health(c *gin.Context) {
-	response.OK(c, gin.H{"status": "ok"})
+	response.OK(c, gin.H{"status": "ok"}, "User Service Operational")
 }

@@ -31,34 +31,25 @@ func (r *UserRepository) Close() {
 	r.db.Close()
 }
 
-// CreateUser inserts a new user into the database.
-// Returns model.ErrEmailAlreadyExists if email violates unique constraint.
 func (r *UserRepository) CreateUser(ctx context.Context, user *model.User) error {
 	query := `
-		INSERT INTO users (id, display_name, email, password_hash, email_verified, last_login_at, created_at, updated_at, deleted_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		INSERT INTO users (id, display_name, email, password_hash)
+		VALUES ($1, $2, $3, $4)
 	`
 
-	_, err := r.db.Exec(ctx, query, user.ID, user.DisplayName, user.Email, user.PasswordHash, user.EmailVerified, user.LastLoginAt, user.CreatedAt, user.UpdatedAt, user.DeletedAt)
+	_, err := r.db.Exec(ctx, query, user.ID, user.DisplayName, user.Email, user.PasswordHash)
 	if err != nil {
-		// PostgreSQL error code 23505 = unique_violation
-		// This happens when email already exists in database
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.ConstraintName == "users_email_key" {
 			return model.ErrEmailAlreadyExists
 		}
 
-		// For any other database error, we return it as-is
-		// The handler will treat unknown errors as internal server errors
 		return err
 	}
 
 	return nil
 }
 
-// FindUserByEmail finds a user by their email address.
-// Returns model.ErrUserNotFound if no user exists with the given email.
-// This is used for login - we check if email exists, then compare password.
 func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*model.User, error) {
 	query := `
 		SELECT id, display_name, email, password_hash, email_verified, last_login_at, created_at, updated_at, deleted_at
@@ -89,8 +80,6 @@ func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*mo
 	return &user, nil
 }
 
-// CheckEmailExists checks if an email already exists in the database.
-// Returns true if exists, false otherwise.
 func (r *UserRepository) CheckEmailExists(ctx context.Context, email string) (bool, error) {
 	query := `
 		SELECT EXISTS(SELECT 1 FROM users WHERE email = $1 AND deleted_at IS NULL)

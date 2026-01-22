@@ -22,8 +22,6 @@ type LoginResponse struct {
 	AccessToken string `json:"accessToken"`
 }
 
-// UserResponse is the standard user representation in API responses.
-// Used by GET /users/me and other endpoints that return user data.
 type UserResponse struct {
 	ID            string `json:"id"`
 	DisplayName   string `json:"displayName"`

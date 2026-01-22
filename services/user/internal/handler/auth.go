@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -28,7 +27,9 @@ func (h *UserHandler) Register(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, model.ErrEmailAlreadyExists):
-			response.Conflict(c, response.CodeEmailAlreadyExists, fmt.Sprintf("Email %s already exists", req.Email))
+			response.Conflict(c, response.CodeEmailAlreadyExists, "Email already exists", gin.H{
+				"email": req.Email,
+			})
 			return
 		default:
 			log.Printf("[ERROR] Register failed: %v", err)
@@ -43,7 +44,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		Email:         user.Email,
 		EmailVerified: user.EmailVerified,
 		CreatedAt:     user.CreatedAt.Unix(),
-	})
+	}, "User registered successfully")
 }
 
 func (h *UserHandler) Login(c *gin.Context) {
@@ -61,11 +62,11 @@ func (h *UserHandler) Login(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, model.ErrIncorrectCredentials):
-			response.Unauthorized(c, response.CodeCredentialsInvalid, "Incorrect email or password")
+			response.Unauthorized(c, response.CodeCredentialsInvalid, "Incorrect email or password", nil)
 			return
 
 		default:
-			log.Printf("[ERROR] LoginUser failed: %v", err)
+			log.Printf("[ERROR] fail to login user: %v", err)
 			response.InternalServerError(c)
 			return
 		}
@@ -73,5 +74,5 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 	response.OK(c, LoginResponse{
 		AccessToken: result.AccessToken,
-	})
+	}, "User login successfully")
 }

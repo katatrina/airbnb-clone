@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -11,7 +10,6 @@ import (
 	"github.com/katatrina/airbnb-clone/services/user/internal/model"
 )
 
-// GetMe returns the current authenticated user's profile.
 func (h *UserHandler) GetMe(c *gin.Context) {
 	userID := c.MustGet(constant.UserIDKey).(string)
 
@@ -28,10 +26,12 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 			// - User was deleted after login
 			// - Database was reset
 			// - Token was issued for a non-existent user (bug)
-			response.NotFound(c, fmt.Sprintf("User ID %s not found", userID))
+			response.NotFound(c, response.CodeUserNotFound, "User not found", gin.H{
+				"userId": userID,
+			})
 			return
 		default:
-			log.Printf("[ERROR] GetMe failed for user %s: %s", userID, err)
+			log.Printf("[ERROR] failed to get user profile: %s", err)
 			response.InternalServerError(c)
 			return
 		}
@@ -50,5 +50,5 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 			return &lastLoginAt
 		}(),
 		CreatedAt: user.CreatedAt.Unix(),
-	})
+	}, "")
 }

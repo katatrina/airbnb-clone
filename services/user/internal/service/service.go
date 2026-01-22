@@ -1,12 +1,3 @@
-// Package service contains business logic.
-// This layer is responsible for:
-// 1. Orchestrating calls to repository
-// 2. Implementing business rules
-// 3. Transforming between DTOs and domain models
-//
-// Key principle: Service layer knows NOTHING about HTTP.
-// No gin.Context, no HTTP status codes, no JSON tags.
-// This makes it reusable across different transports (HTTP, gRPC, CLI, etc.)
 package service
 
 import (
@@ -56,16 +47,11 @@ func (s *UserService) CreateUser(ctx context.Context, arg CreateUserParams) (*mo
 	}
 
 	userID, _ := uuid.NewV7()
-	now := time.Now()
-
 	user := model.User{
-		ID:            userID.String(),
-		DisplayName:   arg.DisplayName,
-		Email:         arg.Email,
-		PasswordHash:  string(hashedPassword),
-		EmailVerified: false,
-		CreatedAt:     now,
-		UpdatedAt:     now,
+		ID:           userID.String(),
+		DisplayName:  arg.DisplayName,
+		Email:        arg.Email,
+		PasswordHash: string(hashedPassword),
 	}
 
 	err = s.userRepo.CreateUser(ctx, &user)
@@ -86,34 +72,27 @@ type LoginUserResult struct {
 }
 
 func (s *UserService) LoginUser(ctx context.Context, arg LoginUserParams) (*LoginUserResult, error) {
-	// Find user by email
 	user, err := s.userRepo.FindUserByEmail(ctx, arg.Email)
 	if err != nil {
-		// Don't reveal if email exists or not (security)
 		if errors.Is(err, model.ErrUserNotFound) {
 			return nil, model.ErrIncorrectCredentials
 		}
 		return nil, err
 	}
 
-	// Compare password with stored hash
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(arg.Password))
 	if err != nil {
-		// Password doesn't match - return same generic error
-		// Don't reveal that the password is wrong (email was correct)
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return nil, model.ErrIncorrectCredentials
 		}
 		return nil, err
 	}
 
-	// Generate access token
 	accessToken, err := s.tokenMaker.CreateToken(user.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Update last login time
 	now := time.Now()
 	user.LastLoginAt = &now
 	err = s.userRepo.UpdateLastLogin(ctx, user.ID, user.LastLoginAt)

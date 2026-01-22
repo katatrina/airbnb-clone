@@ -115,8 +115,8 @@ func (r *ListingRepository) CountListingSByStatus(
 
 func (r *ListingRepository) UpdateListingStatus(ctx context.Context, id string, status model.ListingStatus) error {
 	query := `
-		UPDATE listings 
-		SET status = $1, updated_at = NOW() 
+		UPDATE listings
+		SET status = $1, updated_at = NOW()
 		WHERE id = $2 AND deleted_at IS NULL
 	`
 

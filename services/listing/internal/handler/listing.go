@@ -120,7 +120,7 @@ func (h *ListingHandler) PublishListing(c *gin.Context) {
 		default:
 			response.InternalServerError(c)
 		}
-
+  
 		return
 	}
 
