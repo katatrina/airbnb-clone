@@ -16,3 +16,15 @@ type UpdateListingBasicInfoParams struct {
 	Description   *string
 	PricePerNight *int64
 }
+
+type UpdateListingAddressParams struct {
+	ListingID     string
+	HostID        string
+	ProvinceCode  *string
+	ProvinceName  *string
+	DistrictCode  *string
+	DistrictName  *string
+	WardCode      *string
+	WardName      *string
+	AddressDetail *string
+}

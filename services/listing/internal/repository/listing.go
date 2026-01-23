@@ -189,3 +189,82 @@ func (r *ListingRepository) UpdateListingBasicInfo(ctx context.Context, id strin
 
 	return &listing, nil
 }
+
+func (r *ListingRepository) UpdateListingAddress(ctx context.Context, params model.UpdateListingAddressParams) (*model.Listing, error) {
+	var setClauses []string
+	var args []interface{}
+	paramIndex := 1
+
+	if params.ProvinceCode != nil {
+		setClauses = append(setClauses, fmt.Sprintf("province_code = $%d", paramIndex))
+		args = append(args, *params.ProvinceCode)
+		paramIndex++
+	}
+
+	if params.ProvinceName != nil {
+		setClauses = append(setClauses, fmt.Sprintf("province_name = $%d", paramIndex))
+		args = append(args, *params.ProvinceName)
+		paramIndex++
+	}
+
+	if params.DistrictCode != nil {
+		setClauses = append(setClauses, fmt.Sprintf("district_code = $%d", paramIndex))
+		args = append(args, *params.DistrictCode)
+		paramIndex++
+	}
+
+	if params.DistrictName != nil {
+		setClauses = append(setClauses, fmt.Sprintf("district_name = $%d", paramIndex))
+		args = append(args, *params.DistrictName)
+		paramIndex++
+	}
+
+	if params.WardCode != nil {
+		setClauses = append(setClauses, fmt.Sprintf("ward_code = $%d", paramIndex))
+		args = append(args, *params.WardCode)
+		paramIndex++
+	}
+
+	if params.WardName != nil {
+		setClauses = append(setClauses, fmt.Sprintf("ward_name = $%d", paramIndex))
+		args = append(args, *params.WardName)
+		paramIndex++
+	}
+
+	if params.AddressDetail != nil {
+		setClauses = append(setClauses, fmt.Sprintf("address_detail = $%d", paramIndex))
+		args = append(args, *params.AddressDetail)
+		paramIndex++
+	}
+
+	if len(setClauses) == 0 {
+		return nil, nil
+	}
+
+	setClauses = append(setClauses, fmt.Sprintf("updated_at = $%d", paramIndex))
+	args = append(args, time.Now())
+	paramIndex++
+
+	args = append(args, params.ListingID)
+
+	query := fmt.Sprintf(`
+		UPDATE listings
+		SET %s
+		WHERE id = $%d AND deleted_at IS NULL
+		RETURNING id, host_id, title, description, price_per_night, currency,
+			province_code, province_name, district_code, district_name,
+			ward_code, ward_name, address_detail,
+			status, created_at, updated_at, deleted_at
+	`, strings.Join(setClauses, ", "), paramIndex)
+
+	rows, _ := r.db.Query(ctx, query, args...)
+	listing, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.Listing])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, model.ErrListingNotFound
+		}
+		return nil, err
+	}
+
+	return &listing, nil
+}

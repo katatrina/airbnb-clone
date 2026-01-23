@@ -132,7 +132,51 @@ func (h *ListingHandler) UpdateListingBasicInfo(c *gin.Context) {
 }
 
 func (h *ListingHandler) UpdateListingAddress(c *gin.Context) {
-	panic("not implemented")
+	userID := c.MustGet(constant.UserIDKey).(string)
+	listingID := c.Param("id")
+	if _, err := uuid.Parse(listingID); err != nil {
+		response.BadRequest(c, response.CodeValidationFailed, "Invalid listing ID format")
+		return
+	}
+
+	var req UpdateListingAddressRequest
+	if err := request.ShouldBindJSON(c, &req); err != nil {
+		response.HandleJSONBindingError(c, err)
+		return
+	}
+
+	listing, err := h.listingService.UpdateListingAddress(c.Request.Context(), model.UpdateListingAddressParams{
+		ListingID:     listingID,
+		HostID:        userID,
+		ProvinceCode:  req.ProvinceCode,
+		DistrictCode:  req.DistrictCode,
+		WardCode:      req.WardCode,
+		AddressDetail: req.AddressDetail,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, model.ErrListingNotFound), errors.Is(err, model.ErrListingOwnerMismatch):
+			response.NotFound(c, response.CodeListingNotFound, "Listing not found")
+		case errors.Is(err, model.ErrActiveListingCannotBeUpdated):
+			response.BadRequest(c, response.CodeActiveListingCannotBeUpdated, "Active listing cannot be updated")
+		case errors.Is(err, model.ErrProvinceCodeNotFound):
+			response.BadRequest(c, response.CodeProvinceNotFound, "Province code not found")
+		case errors.Is(err, model.ErrDistrictCodeNotFound):
+			response.BadRequest(c, response.CodeDistrictNotFound, "District code not found")
+		case errors.Is(err, model.ErrWardCodeNotFound):
+			response.BadRequest(c, response.CodeWardNotFound, "Ward code not found")
+		case errors.Is(err, model.ErrDistrictProvinceMismatch):
+			response.BadRequest(c, response.CodeReferenceInvalid, "District does not belong to province")
+		case errors.Is(err, model.ErrWardDistrictMismatch):
+			response.BadRequest(c, response.CodeReferenceInvalid, "Ward does not belong to district")
+		default:
+			response.InternalServerError(c)
+		}
+
+		return
+	}
+
+	response.OK(c, NewListingResponse(listing), "Listing address updated successfully")
 }
 
 func (h *ListingHandler) PublishListing(c *gin.Context) {

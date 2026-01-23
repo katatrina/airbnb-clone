@@ -18,6 +18,13 @@ type UpdateListingBasicInfoRequest struct {
 	PricePerNight *int64  `json:"pricePerNight" validate:"omitnil,gte=1"`
 }
 
+type UpdateListingAddressRequest struct {
+	ProvinceCode  *string `json:"provinceCode" validate:"required_with=DistrictCode WardCode" normalize:"trim"`
+	DistrictCode  *string `json:"districtCode" validate:"required_with=ProvinceCode WardCode" normalize:"trim"`
+	WardCode      *string `json:"wardCode" validate:"required_with=ProvinceCode DistrictCode" normalize:"trim"`
+	AddressDetail *string `json:"addressDetail" validate:"omitnil,min=10,max=500" normalize:"trim,singlespace"`
+}
+
 type ListingResponse struct {
 	ID            string `json:"id"`
 	Title         string `json:"title"`

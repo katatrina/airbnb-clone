@@ -143,3 +143,58 @@ func (s *ListingService) UpdateListingBasicInfo(ctx context.Context, listingID, 
 
 	return updatedListing, nil
 }
+
+func (s *ListingService) UpdateListingAddress(ctx context.Context, arg model.UpdateListingAddressParams) (*model.Listing, error) {
+	listing, err := s.listingRepo.FindListingByID(ctx, arg.ListingID)
+	if err != nil {
+		return nil, err
+	}
+
+	if listing.HostID != arg.HostID {
+		return nil, model.ErrListingOwnerMismatch
+	}
+
+	if listing.Status == model.ListingStatusActive {
+		return nil, model.ErrActiveListingCannotBeUpdated
+	}
+
+	if arg.ProvinceCode != nil && arg.DistrictCode != nil && arg.WardCode != nil {
+		province, err := s.listingRepo.FindProvinceByCode(ctx, *arg.ProvinceCode)
+		if err != nil {
+			return nil, err
+		}
+
+		district, err := s.listingRepo.FindDistrictByCode(ctx, *arg.DistrictCode)
+		if err != nil {
+			return nil, err
+		}
+
+		if district.ProvinceCode != province.Code {
+			return nil, model.ErrDistrictProvinceMismatch
+		}
+
+		ward, err := s.listingRepo.FindWardByCode(ctx, *arg.WardCode)
+		if err != nil {
+			return nil, err
+		}
+
+		if ward.DistrictCode != district.Code {
+			return nil, model.ErrWardDistrictMismatch
+		}
+
+		arg.ProvinceName = &province.FullName
+		arg.DistrictName = &district.FullName
+		arg.WardName = &ward.FullName
+	}
+
+	updatedListing, err := s.listingRepo.UpdateListingAddress(ctx, arg)
+	if err != nil {
+		return nil, err
+	}
+
+	if updatedListing == nil {
+		return listing, nil
+	}
+
+	return updatedListing, nil
+}
