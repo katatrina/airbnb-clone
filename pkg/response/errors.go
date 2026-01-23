@@ -9,6 +9,10 @@ const (
 	CodeJSONFormatInvalid ErrorCode = "INVALID_JSON_FORMAT"
 	CodeReferenceInvalid  ErrorCode = "INVALID_REFERENCE" // Foreign key, relationship
 
+	CodeListingNotDraft              ErrorCode = "LISTING_NOT_DRAFT"
+	CodeListingIncomplete            ErrorCode = "LISTING_INCOMPLETE"
+	CodeActiveListingCannotBeUpdated ErrorCode = "ACTIVE_LISTING_CANNOT_BE_UPDATED"
+
 	CodeAuthenticationRequired ErrorCode = "AUTHENTICATION_REQUIRED"
 	CodeCredentialsInvalid     ErrorCode = "INVALID_CREDENTIALS"
 	CodeTokenExpired           ErrorCode = "TOKEN_EXPIRED"

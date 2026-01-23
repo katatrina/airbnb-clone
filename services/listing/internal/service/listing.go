@@ -9,7 +9,7 @@ import (
 	"github.com/katatrina/airbnb-clone/services/listing/internal/model"
 )
 
-func (s *ListingService) CreateListing(ctx context.Context, arg CreateListingParams) (*model.Listing, error) {
+func (s *ListingService) CreateListing(ctx context.Context, arg model.CreateListingParams) (*model.Listing, error) {
 	province, err := s.listingRepo.FindProvinceByCode(ctx, arg.ProvinceCode)
 	if err != nil {
 		return nil, err
@@ -88,19 +88,21 @@ func (s *ListingService) ListActiveListings(ctx context.Context, limit, offset i
 	return listings, total, nil
 }
 
-func (s *ListingService) PublishListing(ctx context.Context, listingID, userID string) (*model.Listing, error) {
+func (s *ListingService) PublishListing(ctx context.Context, listingID, hostID string) (*model.Listing, error) {
 	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
 	if err != nil {
 		return nil, err
 	}
 
-	if listing.HostID != userID {
+	if listing.HostID != hostID {
 		return nil, model.ErrListingOwnerMismatch
 	}
 
 	if listing.Status != model.ListingStatusDraft {
 		return nil, model.ErrListingNotDraft
 	}
+
+	// TODO: We can add more validation rules here later
 
 	if utf8.RuneCountInString(listing.Description) < 50 {
 		return nil, model.ErrListingIncomplete
@@ -111,6 +113,33 @@ func (s *ListingService) PublishListing(ctx context.Context, listingID, userID s
 		return nil, err
 	}
 	listing.Status = model.ListingStatusActive
+	listing.UpdatedAt = time.Now()
 
 	return listing, nil
+}
+
+func (s *ListingService) UpdateListingBasicInfo(ctx context.Context, listingID, hostID string, arg model.UpdateListingBasicInfoParams) (*model.Listing, error) {
+	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
+	if err != nil {
+		return nil, err
+	}
+
+	if listing.HostID != hostID {
+		return nil, model.ErrListingOwnerMismatch
+	}
+
+	if listing.Status == model.ListingStatusActive {
+		return nil, model.ErrActiveListingCannotBeUpdated
+	}
+
+	updatedListing, err := s.listingRepo.UpdateListingBasicInfo(ctx, listingID, arg)
+	if err != nil {
+		return nil, err
+	}
+
+	if updatedListing == nil {
+		return listing, nil
+	}
+
+	return updatedListing, nil
 }

@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -26,7 +25,7 @@ func (h *ListingHandler) ListProvinces(c *gin.Context) {
 		}
 	}
 
-	response.OK(c, resp)
+	response.OK(c, resp, "")
 }
 
 func (h *ListingHandler) ListDistrictsByProvince(c *gin.Context) {
@@ -39,7 +38,7 @@ func (h *ListingHandler) ListDistrictsByProvince(c *gin.Context) {
 	districts, err := h.listingService.ListDistrictsByProvince(c.Request.Context(), provinceCode)
 	if err != nil {
 		if errors.Is(err, model.ErrProvinceCodeNotFound) {
-			response.NotFound(c, fmt.Sprintf("Province code %s not found", provinceCode))
+			response.NotFound(c, response.CodeProvinceNotFound, "Province code not found")
 			return
 		}
 
@@ -57,7 +56,7 @@ func (h *ListingHandler) ListDistrictsByProvince(c *gin.Context) {
 		}
 	}
 
-	response.OK(c, resp)
+	response.OK(c, resp, "")
 }
 
 func (h *ListingHandler) ListWardsByDistrict(c *gin.Context) {
@@ -70,7 +69,7 @@ func (h *ListingHandler) ListWardsByDistrict(c *gin.Context) {
 	wards, err := h.listingService.ListWardsByDistrict(c.Request.Context(), districtCode)
 	if err != nil {
 		if errors.Is(err, model.ErrDistrictCodeNotFound) {
-			response.NotFound(c, fmt.Sprintf("District code %s not found", districtCode))
+			response.NotFound(c, response.CodeDistrictNotFound, "District code not found")
 			return
 		}
 
@@ -88,5 +87,5 @@ func (h *ListingHandler) ListWardsByDistrict(c *gin.Context) {
 		}
 	}
 
-	response.OK(c, resp)
+	response.OK(c, resp, "")
 }

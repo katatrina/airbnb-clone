@@ -14,14 +14,14 @@ func AuthMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			response.Unauthorized(c, response.CodeAuthenticationRequired, "Authorization header is required", nil)
+			response.Unauthorized(c, response.CodeAuthenticationRequired, "Authorization header is required")
 			c.Abort()
 			return
 		}
 
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			response.Unauthorized(c, response.CodeAuthenticationRequired, "Authorization header format must be: Bearer {token}", nil)
+			response.Unauthorized(c, response.CodeAuthenticationRequired, "Authorization header format must be: Bearer {token}")
 			c.Abort()
 			return
 		}
@@ -31,11 +31,11 @@ func AuthMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 		if err != nil {
 			switch {
 			case errors.Is(err, token.ErrTokenExpired):
-				response.Unauthorized(c, response.CodeTokenExpired, "Token has expired", nil)
+				response.Unauthorized(c, response.CodeTokenExpired, "Token has expired")
 			case errors.Is(err, token.ErrTokenInvalid):
-				response.Unauthorized(c, response.CodeTokenInvalid, "Invalid token", nil)
+				response.Unauthorized(c, response.CodeTokenInvalid, "Invalid token")
 			default:
-				response.Unauthorized(c, response.CodeAuthenticationRequired, "Authentication failed", nil)
+				response.Unauthorized(c, response.CodeAuthenticationRequired, "Authentication failed")
 			}
 			c.Abort()
 			return

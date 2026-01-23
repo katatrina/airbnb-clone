@@ -1,11 +1,10 @@
 package handler
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
+	"github.com/katatrina/airbnb-clone/pkg/response"
 )
 
 func (h *ListingHandler) Health(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	response.OK(c, gin.H{"status": "ok"}, "Listing Service Operational")
 }

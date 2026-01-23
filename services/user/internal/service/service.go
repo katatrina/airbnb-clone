@@ -47,11 +47,15 @@ func (s *UserService) CreateUser(ctx context.Context, arg CreateUserParams) (*mo
 	}
 
 	userID, _ := uuid.NewV7()
+	now := time.Now()
 	user := model.User{
-		ID:           userID.String(),
-		DisplayName:  arg.DisplayName,
-		Email:        arg.Email,
-		PasswordHash: string(hashedPassword),
+		ID:            userID.String(),
+		DisplayName:   arg.DisplayName,
+		Email:         arg.Email,
+		PasswordHash:  string(hashedPassword),
+		EmailVerified: false,
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}
 
 	err = s.userRepo.CreateUser(ctx, &user)
@@ -94,8 +98,7 @@ func (s *UserService) LoginUser(ctx context.Context, arg LoginUserParams) (*Logi
 	}
 
 	now := time.Now()
-	user.LastLoginAt = &now
-	err = s.userRepo.UpdateLastLogin(ctx, user.ID, user.LastLoginAt)
+	err = s.userRepo.UpdateLastLogin(ctx, user.ID, now)
 	if err != nil {
 		log.Printf("[WARN] Failed to update last login for user %s: %v", user.ID, err)
 	}

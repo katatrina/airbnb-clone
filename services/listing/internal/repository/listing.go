@@ -3,6 +3,9 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/model"
@@ -13,7 +16,7 @@ func (r *ListingRepository) CreateListing(ctx context.Context, listing model.Lis
 		INSERT INTO listings (
 			id, host_id, title, description, price_per_night, currency,
 			province_code, province_name, district_code, district_name,
-			ward_code, ward_name, address_detail, 
+			ward_code, ward_name, address_detail,
 			status, created_at, updated_at, deleted_at
 		) VALUES (
 			$1, $2, $3, $4, $5, $6,
@@ -130,4 +133,59 @@ func (r *ListingRepository) UpdateListingStatus(ctx context.Context, id string, 
 	}
 
 	return nil
+}
+
+func (r *ListingRepository) UpdateListingBasicInfo(ctx context.Context, id string, params model.UpdateListingBasicInfoParams) (*model.Listing, error) {
+	var setClauses []string
+	var args []interface{}
+	paramIndex := 1
+
+	if params.Title != nil {
+		setClauses = append(setClauses, fmt.Sprintf("title = $%d", paramIndex))
+		args = append(args, *params.Title)
+		paramIndex++
+	}
+
+	if params.Description != nil {
+		setClauses = append(setClauses, fmt.Sprintf("description = $%d", paramIndex))
+		args = append(args, *params.Description)
+		paramIndex++
+	}
+
+	if params.PricePerNight != nil {
+		setClauses = append(setClauses, fmt.Sprintf("price_per_night = $%d", paramIndex))
+		args = append(args, *params.PricePerNight)
+		paramIndex++
+	}
+
+	if len(setClauses) == 0 {
+		return nil, nil // No need to update or return error
+	}
+
+	setClauses = append(setClauses, fmt.Sprintf("updated_at = $%d", paramIndex))
+	args = append(args, time.Now())
+	paramIndex++
+
+	args = append(args, id)
+
+	query := fmt.Sprintf(`
+		UPDATE listings
+		SET %s
+		WHERE id = $%d AND deleted_at IS NULL
+		RETURNING id, host_id, title, description, price_per_night, currency,
+			province_code, province_name, district_code, district_name,
+			ward_code, ward_name, address_detail,
+			status, created_at, updated_at, deleted_at
+	`, strings.Join(setClauses, ", "), paramIndex)
+
+	rows, _ := r.db.Query(ctx, query, args...)
+	listing, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.Listing])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, model.ErrListingNotFound
+		}
+		return nil, err
+	}
+
+	return &listing, nil
 }

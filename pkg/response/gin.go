@@ -25,29 +25,29 @@ func NoContent(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func BadRequest(c *gin.Context, code ErrorCode, message string, details any) {
-	c.JSON(http.StatusBadRequest, New().Error(code, message, details).Build())
+func BadRequest(c *gin.Context, code ErrorCode, message string) {
+	c.JSON(http.StatusBadRequest, New().Error(code, message).Build())
 }
 
-func BadRequestWithErrors(c *gin.Context, code ErrorCode, message string, errors []request.FieldError, details any) {
-	c.JSON(http.StatusBadRequest, New().Error(code, message, details).WithErrors(errors).Build())
+func BadRequestWithErrors(c *gin.Context, code ErrorCode, message string, errors []request.FieldError) {
+	c.JSON(http.StatusBadRequest, New().Error(code, message).WithErrors(errors).Build())
 }
 
-func Unauthorized(c *gin.Context, code ErrorCode, message string, details any) {
-	c.JSON(http.StatusUnauthorized, New().Error(code, message, details).Build())
+func Unauthorized(c *gin.Context, code ErrorCode, message string) {
+	c.JSON(http.StatusUnauthorized, New().Error(code, message).Build())
 }
 
-func NotFound(c *gin.Context, code ErrorCode, message string, details any) {
-	c.JSON(http.StatusNotFound, New().Error(code, message, details).Build())
+func NotFound(c *gin.Context, code ErrorCode, message string) {
+	c.JSON(http.StatusNotFound, New().Error(code, message).Build())
 }
 
-func Conflict(c *gin.Context, code ErrorCode, message string, details any) {
-	c.JSON(http.StatusConflict, New().Error(code, message, details).Build())
+func Conflict(c *gin.Context, code ErrorCode, message string) {
+	c.JSON(http.StatusConflict, New().Error(code, message).Build())
 }
 
 func InternalServerError(c *gin.Context) {
 	c.JSON(http.StatusInternalServerError,
-		New().Error(CodeInternalServerError, "Internal server error. Please try again later", nil).Build(),
+		New().Error(CodeInternalServerError, "Internal server error. Please try again later").Build(),
 	)
 }
 
@@ -65,10 +65,10 @@ func HandleJSONBindingError(c *gin.Context, err error) {
 	var validationErrors validatorV10.ValidationErrors
 	if errors.As(err, &validationErrors) {
 		fieldErrors := request.TranslateValidationErrors(validationErrors)
-		BadRequestWithErrors(c, CodeValidationFailed, "Validation failed", fieldErrors, nil)
+		BadRequestWithErrors(c, CodeValidationFailed, "Validation failed", fieldErrors)
 		return
 	}
 
 	// TODO: Detail JSON parsing error
-	BadRequest(c, CodeJSONFormatInvalid, "Request body must be valid JSON", nil)
+	BadRequest(c, CodeJSONFormatInvalid, "Request body must be valid JSON")
 }

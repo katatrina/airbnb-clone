@@ -27,9 +27,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, model.ErrEmailAlreadyExists):
-			response.Conflict(c, response.CodeEmailAlreadyExists, "Email already exists", gin.H{
-				"email": req.Email,
-			})
+			response.Conflict(c, response.CodeEmailAlreadyExists, "Email already exists")
 			return
 		default:
 			log.Printf("[ERROR] Register failed: %v", err)
@@ -62,7 +60,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, model.ErrIncorrectCredentials):
-			response.Unauthorized(c, response.CodeCredentialsInvalid, "Incorrect email or password", nil)
+			response.Unauthorized(c, response.CodeCredentialsInvalid, "Incorrect email or password")
 			return
 
 		default:

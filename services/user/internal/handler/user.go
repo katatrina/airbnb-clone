@@ -26,9 +26,7 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 			// - User was deleted after login
 			// - Database was reset
 			// - Token was issued for a non-existent user (bug)
-			response.NotFound(c, response.CodeUserNotFound, "User not found", gin.H{
-				"userId": userID,
-			})
+			response.NotFound(c, response.CodeUserNotFound, "User not found")
 			return
 		default:
 			log.Printf("[ERROR] failed to get user profile: %s", err)

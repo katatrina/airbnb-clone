@@ -1,4 +1,4 @@
-package service
+package model
 
 type CreateListingParams struct {
 	HostID        string
@@ -9,4 +9,10 @@ type CreateListingParams struct {
 	DistrictCode  string
 	WardCode      string
 	AddressDetail string
+}
+
+type UpdateListingBasicInfoParams struct {
+	Title         *string
+	Description   *string
+	PricePerNight *int64
 }

@@ -12,6 +12,12 @@ type CreateListingRequest struct {
 	AddressDetail string `json:"addressDetail" validate:"required,min=10,max=500" normalize:"trim,singlespace"`
 }
 
+type UpdateListingBasicInfoRequest struct {
+	Title         *string `json:"title" validate:"omitnil,min=10,max=200" normalize:"trim,singlespace"`
+	Description   *string `json:"description" validate:"omitnil,max=2000" normalize:"trim,singlespace"`
+	PricePerNight *int64  `json:"pricePerNight" validate:"omitnil,gte=1"`
+}
+
 type ListingResponse struct {
 	ID            string `json:"id"`
 	Title         string `json:"title"`

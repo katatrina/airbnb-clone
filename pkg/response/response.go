@@ -14,7 +14,6 @@ type Response struct {
 	Success bool                 `json:"success"`
 	Code    ErrorCode            `json:"code"`
 	Message string               `json:"message,omitempty"`
-	Details any                  `json:"details,omitempty"`
 	Data    any                  `json:"data,omitempty"`
 	Meta    Meta                 `json:"meta"`
 	Errors  []request.FieldError `json:"errors,omitempty"`
@@ -62,11 +61,10 @@ func (b *Builder) Success(data any, message string) *Builder {
 	return b
 }
 
-func (b *Builder) Error(code ErrorCode, message string, details any) *Builder {
+func (b *Builder) Error(code ErrorCode, message string) *Builder {
 	b.resp.Success = false
 	b.resp.Code = code
 	b.resp.Message = message
-	b.resp.Details = details
 	return b
 }
 
