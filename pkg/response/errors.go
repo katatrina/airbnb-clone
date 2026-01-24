@@ -10,6 +10,7 @@ const (
 	CodeReferenceInvalid  ErrorCode = "INVALID_REFERENCE" // Foreign key, relationship
 
 	CodeListingNotDraft              ErrorCode = "LISTING_NOT_DRAFT"
+	CodeListingNotActive             ErrorCode = "LISTING_NOT_ACTIVE"
 	CodeListingIncomplete            ErrorCode = "LISTING_INCOMPLETE"
 	CodeActiveListingCannotBeUpdated ErrorCode = "ACTIVE_LISTING_CANNOT_BE_UPDATED"
 

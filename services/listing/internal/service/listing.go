@@ -232,3 +232,27 @@ func (s *ListingService) DeleteListingByID(ctx context.Context, listingID, hostI
 
 	return s.listingRepo.DeleteListingByID(ctx, listingID)
 }
+
+func (s *ListingService) DeactivateListingByID(ctx context.Context, listingID, hostID string) (*model.Listing, error) {
+	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
+	if err != nil {
+		return nil, err
+	}
+
+	if listing.HostID != hostID {
+		return nil, model.ErrListingOwnerMismatch
+	}
+
+	if listing.Status != model.ListingStatusActive {
+		return nil, model.ErrListingNotActive
+	}
+
+	newStatus := model.ListingStatusInactive
+	err = s.listingRepo.UpdateListingStatus(ctx, listingID, newStatus)
+	if err != nil {
+		return nil, err
+	}
+	listing.Status = newStatus
+
+	return listing, nil
+}
