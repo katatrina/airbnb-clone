@@ -26,6 +26,8 @@ func NewUserService(userRepo *repository.UserRepository, tokenMaker token.TokenM
 	}
 }
 
+// TODO: Migrate dto structs to package model
+
 type CreateUserParams struct {
 	DisplayName string
 	Email       string

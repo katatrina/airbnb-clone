@@ -71,7 +71,7 @@ func main() {
 			//protected.DELETE("/listings/:id", listingHandler.DeleteListing)
 
 			protected.GET("/me/listings", listingHandler.ListHostListings)
-			//protected.GET("/me/listings/:id", listingHandler.GetUserListingByID)
+			protected.GET("/me/listings/:id", listingHandler.GetUserListingByID)
 		}
 	}
 

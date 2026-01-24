@@ -195,7 +195,7 @@ func (h *ListingHandler) PublishListing(c *gin.Context) {
 		case errors.Is(err, model.ErrListingNotDraft):
 			response.BadRequest(c, response.CodeListingNotDraft, "Listing must be in draft status to publish")
 		case errors.Is(err, model.ErrListingIncomplete):
-			response.BadRequest(c, response.CodeListingIncomplete, "Listing is incomplete. Please add full required information before publishing")
+			response.BadRequest(c, response.CodeListingIncomplete, "Listing is incomplete. Please add full required information before publishing (min 50 characters)")
 		default:
 			response.InternalServerError(c)
 		}
@@ -229,5 +229,26 @@ func (h *ListingHandler) ListHostListings(c *gin.Context) {
 }
 
 func (h *ListingHandler) GetUserListingByID(c *gin.Context) {
-	panic("not implemented")
+	userID := c.MustGet(constant.UserIDKey).(string)
+	listingID := c.Param("id")
+
+	if _, err := uuid.Parse(listingID); err != nil {
+		response.BadRequest(c, response.CodeValidationFailed, "Listing ID format invalid")
+		return
+	}
+
+	listing, err := h.listingService.GetHostListingByID(c.Request.Context(), listingID, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, model.ErrListingNotFound), errors.Is(err, model.ErrListingOwnerMismatch):
+			response.NotFound(c, response.CodeListingNotFound, "Listing not found")
+		default:
+			log.Printf("[ERROR] failed to get host listing: %v", err)
+			response.InternalServerError(c)
+		}
+
+		return
+	}
+
+	response.OK(c, NewListingResponse(listing), "")
 }

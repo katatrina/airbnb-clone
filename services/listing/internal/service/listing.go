@@ -202,3 +202,16 @@ func (s *ListingService) UpdateListingAddress(ctx context.Context, arg model.Upd
 func (s *ListingService) ListHostListings(ctx context.Context, hostID string) ([]model.Listing, error) {
 	return s.listingRepo.ListHostListings(ctx, hostID)
 }
+
+func (s *ListingService) GetHostListingByID(ctx context.Context, listingID, hostID string) (*model.Listing, error) {
+	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
+	if err != nil {
+		return nil, err
+	}
+
+	if listing.HostID != hostID {
+		return nil, model.ErrListingOwnerMismatch
+	}
+
+	return listing, nil
+}
