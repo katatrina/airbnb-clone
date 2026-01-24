@@ -214,8 +214,18 @@ func (h *ListingHandler) DeleteListing(c *gin.Context) {
 	panic("not implemented")
 }
 
-func (h *ListingHandler) ListUserListings(c *gin.Context) {
-	panic("not implemented")
+func (h *ListingHandler) ListHostListings(c *gin.Context) {
+	userID := c.MustGet(constant.UserIDKey).(string)
+
+	// TODO: Add filtering and searching
+	listings, err := h.listingService.ListHostListings(c.Request.Context(), userID)
+	if err != nil {
+		log.Printf("[ERROR] failed to list host listings: %v", err)
+		response.InternalServerError(c)
+		return
+	}
+
+	response.OK(c, NewListingsResponse(listings), "")
 }
 
 func (h *ListingHandler) GetUserListingByID(c *gin.Context) {

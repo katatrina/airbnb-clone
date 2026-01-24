@@ -57,10 +57,10 @@ func main() {
 			auth.POST("/login", userHandler.Login)
 		}
 
-		users := v1.Group("/users")
+		users := v1.Group("/me")
 		users.Use(middleware.AuthMiddleware(tokenMaker))
 		{
-			users.GET("/me", userHandler.GetMe)
+			users.GET("", userHandler.GetMe)
 		}
 	}
 

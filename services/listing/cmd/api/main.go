@@ -63,13 +63,14 @@ func main() {
 		protected := v1.Group("").Use(middleware.AuthMiddleware(tokenMaker))
 		{
 			protected.POST("/listings", listingHandler.CreateListing)
+			protected.POST("/listings/:id/publish", listingHandler.PublishListing)
+			//protected.POST("/listings/:id/deactivate", listingHandler.DeactivateListing)
+			//protected.POST("/listings/:id/reactivate", listingHandler.ReactivateListing)
 			protected.PATCH("/listings/:id/basic-info", listingHandler.UpdateListingBasicInfo)
 			protected.PATCH("/listings/:id/address", listingHandler.UpdateListingAddress)
-			protected.PATCH("/listings/:id/publish", listingHandler.PublishListing)
-			//protected.POST("/listings/:id/deactivate", listingHandler.DeactivateListing)
 			//protected.DELETE("/listings/:id", listingHandler.DeleteListing)
 
-			//protected.GET("/me/listings", listingHandler.ListUserListings)
+			protected.GET("/me/listings", listingHandler.ListHostListings)
 			//protected.GET("/me/listings/:id", listingHandler.GetUserListingByID)
 		}
 	}

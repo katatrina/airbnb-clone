@@ -198,3 +198,7 @@ func (s *ListingService) UpdateListingAddress(ctx context.Context, arg model.Upd
 
 	return updatedListing, nil
 }
+
+func (s *ListingService) ListHostListings(ctx context.Context, hostID string) ([]model.Listing, error) {
+	return s.listingRepo.ListHostListings(ctx, hostID)
+}

@@ -268,3 +268,23 @@ func (r *ListingRepository) UpdateListingAddress(ctx context.Context, params mod
 
 	return &listing, nil
 }
+
+func (r *ListingRepository) ListHostListings(ctx context.Context, hostID string) ([]model.Listing, error) {
+	query := `
+		SELECT id, host_id, title, description, price_per_night, currency,
+			province_code, province_name, district_code, district_name,
+			ward_code, ward_name, address_detail,
+			status, created_at, updated_at, deleted_at
+		FROM listings
+		WHERE host_id = $1 AND deleted_at IS NULL
+		ORDER BY created_at DESC
+	`
+
+	rows, _ := r.db.Query(ctx, query, hostID)
+	listings, err := pgx.CollectRows(rows, pgx.RowToStructByName[model.Listing])
+	if err != nil {
+		return nil, err
+	}
+
+	return listings, nil
+}
