@@ -288,3 +288,22 @@ func (r *ListingRepository) ListHostListings(ctx context.Context, hostID string)
 
 	return listings, nil
 }
+
+func (r *ListingRepository) DeleteListingByID(ctx context.Context, listingID string) error {
+	query := `
+		UPDATE listings
+		SET deleted_at = NOW()
+		WHERE id = $1 AND deleted_at IS NULL
+	`
+
+	result, err := r.db.Exec(ctx, query, listingID)
+	if err != nil {
+		return err
+	}
+
+	if result.RowsAffected() == 0 {
+		return model.ErrListingNotFound
+	}
+
+	return nil
+}

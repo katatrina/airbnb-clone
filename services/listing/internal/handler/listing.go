@@ -31,7 +31,7 @@ func (h *ListingHandler) ListActiveListings(c *gin.Context) {
 	response.OKWithPagination(c, NewListingsResponse(listings), "", paginationParams.Page, paginationParams.PageSize, total)
 }
 
-func (h *ListingHandler) GetListingByID(c *gin.Context) {
+func (h *ListingHandler) GetActiveListing(c *gin.Context) {
 	listingID := c.Param("id")
 
 	if _, err := uuid.Parse(listingID); err != nil {
@@ -211,7 +211,28 @@ func (h *ListingHandler) DeactivateListing(c *gin.Context) {
 }
 
 func (h *ListingHandler) DeleteListing(c *gin.Context) {
-	panic("not implemented")
+	userID := c.MustGet(constant.UserIDKey).(string)
+	listingID := c.Param("id")
+
+	if _, err := uuid.Parse(listingID); err != nil {
+		response.BadRequest(c, response.CodeValidationFailed, "Listing ID format invalid")
+		return
+	}
+
+	err := h.listingService.DeleteListingByID(c.Request.Context(), listingID, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, model.ErrListingNotFound), errors.Is(err, model.ErrListingOwnerMismatch):
+			response.NotFound(c, response.CodeListingNotFound, "Listing not found")
+		default:
+			log.Printf("[ERROR] failed to delete host listing: %v", err)
+			response.InternalServerError(c)
+		}
+
+		return
+	}
+
+	response.NoContent(c)
 }
 
 func (h *ListingHandler) ListHostListings(c *gin.Context) {
@@ -228,7 +249,7 @@ func (h *ListingHandler) ListHostListings(c *gin.Context) {
 	response.OK(c, NewListingsResponse(listings), "")
 }
 
-func (h *ListingHandler) GetUserListingByID(c *gin.Context) {
+func (h *ListingHandler) GetUserListing(c *gin.Context) {
 	userID := c.MustGet(constant.UserIDKey).(string)
 	listingID := c.Param("id")
 

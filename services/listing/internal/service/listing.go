@@ -215,3 +215,20 @@ func (s *ListingService) GetHostListingByID(ctx context.Context, listingID, host
 
 	return listing, nil
 }
+
+func (s *ListingService) DeleteListingByID(ctx context.Context, listingID, hostID string) error {
+	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
+	if err != nil {
+		return err
+	}
+
+	if listing.HostID != hostID {
+		return model.ErrListingOwnerMismatch
+	}
+
+	// Allow deleting listing from any status
+
+	// TODO: Check active booking(s) related to this listing (future in booking service)
+
+	return s.listingRepo.DeleteListingByID(ctx, listingID)
+}

@@ -54,7 +54,7 @@ func main() {
 		public := v1.Group("")
 		{
 			public.GET("/listings", listingHandler.ListActiveListings)
-			public.GET("/listings/:id", listingHandler.GetListingByID)
+			public.GET("/listings/:id", listingHandler.GetActiveListing)
 			public.GET("/provinces", listingHandler.ListProvinces)
 			public.GET("/districts", listingHandler.ListDistrictsByProvince)
 			public.GET("/wards", listingHandler.ListWardsByDistrict)
@@ -68,10 +68,10 @@ func main() {
 			//protected.POST("/listings/:id/reactivate", listingHandler.ReactivateListing)
 			protected.PATCH("/listings/:id/basic-info", listingHandler.UpdateListingBasicInfo)
 			protected.PATCH("/listings/:id/address", listingHandler.UpdateListingAddress)
-			//protected.DELETE("/listings/:id", listingHandler.DeleteListing)
+			protected.DELETE("/listings/:id", listingHandler.DeleteListing)
 
 			protected.GET("/me/listings", listingHandler.ListHostListings)
-			protected.GET("/me/listings/:id", listingHandler.GetUserListingByID)
+			protected.GET("/me/listings/:id", listingHandler.GetUserListing)
 		}
 	}
 
