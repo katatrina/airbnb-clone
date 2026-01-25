@@ -8,6 +8,7 @@ var (
 	ErrListingIncomplete    = errors.New("listing is incomplete, cannot publish")
 	ErrListingNotDraft      = errors.New("listing must be in draft status to publish")
 	ErrListingNotActive     = errors.New("listing must be in active status to deactivate")
+	ErrListingNotInactive   = errors.New("listing must be in inactive status to reactivate")
 
 	ErrActiveListingCannotBeUpdated = errors.New("active listing cannot be updated")
 

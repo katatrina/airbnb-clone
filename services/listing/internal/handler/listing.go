@@ -223,7 +223,7 @@ func (h *ListingHandler) DeactivateListing(c *gin.Context) {
 		case errors.Is(err, model.ErrListingNotActive):
 			response.BadRequest(c, response.CodeListingNotActive, "Listing must be in active status to deactivate")
 		default:
-			log.Printf("[ERROR] failed to delete host listing: %v", err)
+			log.Printf("[ERROR] failed to deactivate host listing: %v", err)
 			response.InternalServerError(c)
 		}
 
@@ -231,6 +231,33 @@ func (h *ListingHandler) DeactivateListing(c *gin.Context) {
 	}
 
 	response.OK(c, listing, "Deactivate listing successfully")
+}
+
+func (h *ListingHandler) ReactivateListing(c *gin.Context) {
+	userID := c.MustGet(constant.UserIDKey).(string)
+	listingID := c.Param("id")
+
+	if _, err := uuid.Parse(listingID); err != nil {
+		response.BadRequest(c, response.CodeValidationFailed, "Listing ID format invalid")
+		return
+	}
+
+	listing, err := h.listingService.ReactivateListingByID(c.Request.Context(), listingID, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, model.ErrListingNotFound), errors.Is(err, model.ErrListingOwnerMismatch):
+			response.NotFound(c, response.CodeListingNotFound, "Listing not found")
+		case errors.Is(err, model.ErrListingNotInactive):
+			response.BadRequest(c, response.CodeListingNotInactive, "Listing must be in inactive status to reactivate")
+		default:
+			log.Printf("[ERROR] failed to reactivate host listing: %v", err)
+			response.InternalServerError(c)
+		}
+
+		return
+	}
+
+	response.OK(c, listing, "Reactivate listing successfully")
 }
 
 func (h *ListingHandler) DeleteListing(c *gin.Context) {

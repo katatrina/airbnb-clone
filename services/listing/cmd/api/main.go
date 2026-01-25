@@ -65,7 +65,7 @@ func main() {
 			protected.POST("/listings", listingHandler.CreateListing)
 			protected.POST("/listings/:id/publish", listingHandler.PublishListing)
 			protected.POST("/listings/:id/deactivate", listingHandler.DeactivateListing)
-			//protected.POST("/listings/:id/reactivate", listingHandler.ReactivateListing)
+			protected.POST("/listings/:id/reactivate", listingHandler.ReactivateListing)
 			protected.PATCH("/listings/:id/basic-info", listingHandler.UpdateListingBasicInfo)
 			protected.PATCH("/listings/:id/address", listingHandler.UpdateListingAddress)
 			protected.DELETE("/listings/:id", listingHandler.DeleteListing)

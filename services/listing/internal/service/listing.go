@@ -256,3 +256,29 @@ func (s *ListingService) DeactivateListingByID(ctx context.Context, listingID, h
 
 	return listing, nil
 }
+
+func (s *ListingService) ReactivateListingByID(ctx context.Context, listingID, hostID string) (*model.Listing, error) {
+	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
+	if err != nil {
+		return nil, err
+	}
+
+	if listing.HostID != hostID {
+		return nil, model.ErrListingOwnerMismatch
+	}
+
+	if listing.Status != model.ListingStatusInactive {
+		return nil, model.ErrListingNotInactive
+	}
+
+	// We can skip validate completeness here (as we do when publishing listing)
+
+	newStatus := model.ListingStatusActive
+	err = s.listingRepo.UpdateListingStatus(ctx, listingID, newStatus)
+	if err != nil {
+		return nil, err
+	}
+	listing.Status = newStatus
+
+	return listing, nil
+}

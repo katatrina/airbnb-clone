@@ -11,6 +11,7 @@ const (
 
 	CodeListingNotDraft              ErrorCode = "LISTING_NOT_DRAFT"
 	CodeListingNotActive             ErrorCode = "LISTING_NOT_ACTIVE"
+	CodeListingNotInactive           ErrorCode = "LISTING_NOT_INACTIVE"
 	CodeListingIncomplete            ErrorCode = "LISTING_INCOMPLETE"
 	CodeActiveListingCannotBeUpdated ErrorCode = "ACTIVE_LISTING_CANNOT_BE_UPDATED"
 
