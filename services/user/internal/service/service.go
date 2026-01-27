@@ -92,7 +92,7 @@ func (s *UserService) LoginUser(ctx context.Context, arg model.LoginUserParams) 
 	now := time.Now()
 	err = s.userRepo.UpdateUserLastLogin(ctx, user.ID, now)
 	if err != nil {
-		log.Printf("[WARN] Failed to update last login for user %s: %v", user.ID, err)
+		log.Printf("[WARN] Failed to update last login for user: %v", err)
 	}
 
 	return &model.LoginUserResult{
