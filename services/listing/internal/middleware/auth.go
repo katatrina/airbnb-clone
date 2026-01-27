@@ -1,10 +1,3 @@
-// Package middleware contains HTTP middleware functions.
-// Middleware runs before/after handlers and can:
-// - Authenticate requests
-// - Add logging
-// - Handle CORS
-// - Rate limit
-// etc.
 package middleware
 
 import (
@@ -18,17 +11,6 @@ import (
 )
 
 // AuthMiddleware validates tokens and extracts user ID.
-// It uses TokenMaker interface - doesn't know if it's JWT or Paseto
-//
-// Benefits of using TokenMaker:
-// 1. Middleware doesn't need jwt library import
-// 2. Can swap JWT for Paseto without changing middleware
-// 3. Easier to test - just mock TokenMaker
-//
-// Usage:
-//
-//	tokenMaker := token.NewJWTMaker(secret, expiry)
-//	router.GET("/users/me", middleware.AuthMiddleware(tokenMaker), handler.GetMe)
 func AuthMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")

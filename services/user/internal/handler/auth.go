@@ -8,7 +8,6 @@ import (
 	"github.com/katatrina/airbnb-clone/pkg/request"
 	"github.com/katatrina/airbnb-clone/pkg/response"
 	"github.com/katatrina/airbnb-clone/services/user/internal/model"
-	"github.com/katatrina/airbnb-clone/services/user/internal/service"
 )
 
 func (h *UserHandler) Register(c *gin.Context) {
@@ -19,7 +18,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	user, err := h.userService.CreateUser(c.Request.Context(), service.CreateUserParams{
+	user, err := h.userService.CreateUser(c.Request.Context(), model.CreateUserParams{
 		DisplayName: req.DisplayName,
 		Email:       req.Email,
 		Password:    req.Password,
@@ -53,7 +52,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	result, err := h.userService.LoginUser(c.Request.Context(), service.LoginUserParams{
+	result, err := h.userService.LoginUser(c.Request.Context(), model.LoginUserParams{
 		Email:    req.Email,
 		Password: req.Password,
 	})

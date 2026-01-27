@@ -91,7 +91,7 @@ func (r *UserRepository) FindUserByID(ctx context.Context, id string) (*model.Us
 	return &user, nil
 }
 
-func (r *UserRepository) UpdateLastLogin(ctx context.Context, id string, lastLoginAt time.Time) error {
+func (r *UserRepository) UpdateUserLastLogin(ctx context.Context, id string, lastLoginAt time.Time) error {
 	query := `
 		UPDATE users
 		SET last_login_at = $1, updated_at = NOW()

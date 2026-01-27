@@ -10,31 +10,30 @@ import (
 	"github.com/google/uuid"
 	"github.com/katatrina/airbnb-clone/pkg/token"
 	"github.com/katatrina/airbnb-clone/services/user/internal/model"
-	"github.com/katatrina/airbnb-clone/services/user/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
+type UserRepository interface {
+	CreateUser(ctx context.Context, user *model.User) error
+	FindUserByEmail(ctx context.Context, email string) (*model.User, error)
+	FindUserByID(ctx context.Context, id string) (*model.User, error)
+	UpdateUserLastLogin(ctx context.Context, id string, lastLoginAt time.Time) error
+	CheckEmailExists(ctx context.Context, email string) (bool, error)
+}
+
 type UserService struct {
-	userRepo   *repository.UserRepository
+	userRepo   UserRepository
 	tokenMaker token.TokenMaker
 }
 
-func NewUserService(userRepo *repository.UserRepository, tokenMaker token.TokenMaker) *UserService {
+func NewUserService(userRepo UserRepository, tokenMaker token.TokenMaker) *UserService {
 	return &UserService{
 		userRepo:   userRepo,
 		tokenMaker: tokenMaker,
 	}
 }
 
-// TODO: Migrate dto structs to package model
-
-type CreateUserParams struct {
-	DisplayName string
-	Email       string
-	Password    string
-}
-
-func (s *UserService) CreateUser(ctx context.Context, arg CreateUserParams) (*model.User, error) {
+func (s *UserService) CreateUser(ctx context.Context, arg model.CreateUserParams) (*model.User, error) {
 	exists, err := s.userRepo.CheckEmailExists(ctx, arg.Email)
 	if err != nil {
 		return nil, err
@@ -68,16 +67,7 @@ func (s *UserService) CreateUser(ctx context.Context, arg CreateUserParams) (*mo
 	return &user, nil
 }
 
-type LoginUserParams struct {
-	Email    string
-	Password string
-}
-
-type LoginUserResult struct {
-	AccessToken string
-}
-
-func (s *UserService) LoginUser(ctx context.Context, arg LoginUserParams) (*LoginUserResult, error) {
+func (s *UserService) LoginUser(ctx context.Context, arg model.LoginUserParams) (*model.LoginUserResult, error) {
 	user, err := s.userRepo.FindUserByEmail(ctx, arg.Email)
 	if err != nil {
 		if errors.Is(err, model.ErrUserNotFound) {
@@ -100,12 +90,12 @@ func (s *UserService) LoginUser(ctx context.Context, arg LoginUserParams) (*Logi
 	}
 
 	now := time.Now()
-	err = s.userRepo.UpdateLastLogin(ctx, user.ID, now)
+	err = s.userRepo.UpdateUserLastLogin(ctx, user.ID, now)
 	if err != nil {
 		log.Printf("[WARN] Failed to update last login for user %s: %v", user.ID, err)
 	}
 
-	return &LoginUserResult{
+	return &model.LoginUserResult{
 		AccessToken: accessToken,
 	}, nil
 }

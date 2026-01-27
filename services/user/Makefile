@@ -1,4 +1,4 @@
-.PHONY: migrate-create migrate-up migrate-down server
+.PHONY: migrate-create migrate-up migrate-down server service-test
 
 migrate-create:
 	migrate create -ext sql -dir migrations -seq -digits 6 $(NAME)
@@ -11,3 +11,6 @@ migrate-down:
 
 server:
 	go run ./cmd/api
+
+service-test:
+	go test -v -cover -count=1 ./internal/service
