@@ -20,13 +20,43 @@ package service
 
 import (
 	"context"
+	"errors"
 	"testing"
+	"time"
 
 	"github.com/katatrina/airbnb-clone/services/user/internal/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 )
+
+// createTestUser tạo một *model.User với các giá trị mặc định hợp lệ.
+// Bạn có thể override bất kì field nào sau khi gọi function này.
+//
+// Tại sao cần helper này?
+// Vì mỗi test case đều cần một User object, và việc tạo thủ công mỗi lần
+// rất dài dòng và dễ quên field. Helper này đảm bảo ta luôn có
+// một User "đầy đủ" để test.
+func createTestUser(id, email, password string) *model.User {
+	// Hash password giống như production code làm
+	// Điều này QUAN TRỌNG vì LoginUser sẽ dùng bcrypt.CompareHashAndPassword
+	// Nếu password không được hash đúng cách, test sẽ fail
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+	now := time.Now()
+
+	return &model.User{
+		ID:            id,
+		DisplayName:   "Test User",
+		Email:         email,
+		PasswordHash:  string(hashedPassword),
+		EmailVerified: false,
+		LastLoginAt:   nil, // Chưa login lần nào
+		CreatedAt:     now,
+		UpdatedAt:     now,
+	}
+}
 
 // newMocksAndService tạo mock objects và UserService instance.
 // Đây là "factory function" giúp setup test nhanh hơn.
@@ -202,6 +232,184 @@ func TestCreateUser(t *testing.T) {
 			// Nếu ta setup mock.On("CreateUser",...) mà service không gọi CreateUser,
 			// AssertExpectations sẽ fail
 			mockRepo.AssertExpectations(t)
+		})
+	}
+}
+
+// TestLoginUser .
+// LoginUser có các scenarios cần test:
+//  1. Success - Login thành công, trả về token
+//  2. User not found - Email không tồn tại
+//  3. Wrong password - Password sai
+//  4. Token creation fails - TokenMaker.CreateToken fails
+//  5. UpdateUserLastLogin fails - Vẫn phải trả về success (non-critical)
+func TestLoginUser(t *testing.T) {
+	// Tạo password và user MỘT LẦN, dùng chung cho nhiều test cases
+	// Đây là optimization: bcrypt.GenerateFromPassword chậm, không nên chạy nhiều lần
+	const testUserID = "user-123"
+	const testEmail = "user@example.com"
+	const testPassword = "correctPassword123"
+
+	// QUAN TRỌNG: User phải có password hash THẬT từ bcrypt
+	// Vì service code sẽ gọi bcrypt.CompareHashAndPassword
+	// Lưu ý: Mặc dù hai hash password khác giá trị do bcrypt random salt,
+	// nhưng khi so sánh chúng đều là một password.
+	existingUser := createTestUser(testUserID, testEmail, testPassword)
+
+	testCases := []struct {
+		name        string
+		input       model.LoginUserParams
+		setupMock   func(*MockUserRepository, *MockTokenMaker)
+		wantErr     bool
+		expectedErr error
+		validate    func(t *testing.T, result *model.LoginUserResult)
+	}{ // Test case 1: Happy path - Login thành công
+		{
+			name: "success - valid credentials",
+			input: model.LoginUserParams{
+				Email:    testEmail,
+				Password: testPassword, // Password ĐÚNG
+			},
+			setupMock: func(mockRepo *MockUserRepository, mockToken *MockTokenMaker) {
+				// FindUserByEmail trả về user với password hash
+				mockRepo.On("FindUserByEmail", mock.Anything, testEmail).
+					Return(existingUser, nil)
+
+				// TokenMaker.CreateToken được gọi với user ID
+				mockToken.On("CreateToken", testUserID).
+					Return("jwt-token-xyz", nil)
+
+				// UpdateUserLastLogin được gọi (non-critical nên dùng mock.Anything cho time)
+				mockRepo.On("UpdateUserLastLogin", mock.Anything, testUserID, mock.AnythingOfType("time.Time")).
+					Return(nil)
+			},
+			wantErr:     false,
+			expectedErr: nil,
+			validate: func(t *testing.T, result *model.LoginUserResult) {
+				assert.Equal(t, "jwt-token-xyz", result.AccessToken)
+			},
+		},
+
+		// Test case 2: Email không tồn tại
+		{
+			name: "error  - email not found",
+			input: model.LoginUserParams{
+				Email:    "nonexistent@example.com",
+				Password: "anypassword",
+			},
+			setupMock: func(mockRepo *MockUserRepository, mockToken *MockTokenMaker) {
+				// FindUserByEmail trả về ErrUserNotFound
+				mockRepo.On("FindUserByEmail", mock.Anything, "nonexistent@example.com").
+					Return(nil, model.ErrUserNotFound)
+
+				// Không cần setup CreateToken vì không được gọi
+			},
+			wantErr: true,
+			// QUAN TRỌNG: Service trả về ErrIncorrectCredentials, KHÔNG phải ErrUserNotFound
+			// Đây là security best practices: không cho attacker biết email có tồn tại hay không
+			expectedErr: model.ErrIncorrectCredentials,
+			validate:    nil, // không cần validate khi có error
+		},
+
+		// Test case 3: Password sai
+		{
+			name: "error - wrong password",
+			input: model.LoginUserParams{
+				Email:    testEmail,
+				Password: "wrongPassword",
+			},
+			setupMock: func(mockRepo *MockUserRepository, mockToken *MockTokenMaker) {
+				// FindUserByEmail trả về user với password hash ĐÚNG
+				mockRepo.On("FindUserByEmail", mock.Anything, testEmail).
+					Return(existingUser, nil)
+
+				// CreateToken không được gọi vì password check fail trước
+			},
+			wantErr:     true,
+			expectedErr: model.ErrIncorrectCredentials,
+			validate:    nil,
+		},
+
+		// Test case 4: Token creation fails
+		{
+			name: "error - token creation fails",
+			input: model.LoginUserParams{
+				Email:    testEmail,
+				Password: testPassword,
+			},
+			setupMock: func(mockRepo *MockUserRepository, mockToken *MockTokenMaker) {
+				mockRepo.On("FindUserByEmail", mock.Anything, testEmail).
+					Return(existingUser, nil)
+
+				// TokenMaker trả về error
+				mockToken.On("CreateToken", testUserID).
+					Return("", errors.New("random error when creating token I didn't know about"))
+			},
+			wantErr:     true,
+			expectedErr: nil,
+			validate:    nil,
+		},
+
+		// Test case 6: UpdateUserLastLogin fails nhưng login vẫn thành công
+		// ---------------------------------------------------------------------
+		// Đây là test case QUAN TRỌNG về business logic:
+		// - Việc update last login là "nice to have", không critical
+		// - Nếu nó fail, user vẫn phải login được
+		// - Service chỉ log warning, không return error
+		// ---------------------------------------------------------------------
+		{
+			name: "success - login succeeds even when updating last login fails",
+			input: model.LoginUserParams{
+				Email:    testEmail,
+				Password: testPassword,
+			},
+			setupMock: func(mockRepo *MockUserRepository, mockToken *MockTokenMaker) {
+				mockRepo.On("FindUserByEmail", mock.Anything, testEmail).
+					Return(existingUser, nil)
+
+				mockToken.On("CreateToken", testUserID).
+					Return("jwt-token-xyz", nil)
+
+				// UpdateUserLastLogin fails
+				mockRepo.On("UpdateUserLastLogin", mock.Anything, testUserID, mock.AnythingOfType("time.Time")).
+					Return(errors.New("random error when updating user's last login timestamp"))
+			},
+			wantErr:     false, // VẪN SUCCESS!
+			expectedErr: nil,
+			validate: func(t *testing.T, result *model.LoginUserResult) {
+				// Token vẫn được trả về dù UpdateUserLastLogin fail
+				assert.Equal(t, "jwt-token-xyz", result.AccessToken)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Arrange
+			mockRepo, mockToken, svc := newMocksAndService()
+			tc.setupMock(mockRepo, mockToken)
+
+			// Act
+			ctx := context.Background()
+			result, err := svc.LoginUser(ctx, tc.input)
+
+			// Assert
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Nil(t, result)
+				if tc.expectedErr != nil {
+					assert.ErrorIs(t, err, tc.expectedErr)
+				}
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, result)
+				if tc.validate != nil {
+					tc.validate(t, result)
+				}
+			}
+
+			mockRepo.AssertExpectations(t)
+			mockToken.AssertExpectations(t)
 		})
 	}
 }
