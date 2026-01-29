@@ -36,8 +36,8 @@ import (
 //
 // Tại sao cần helper này?
 // Vì mỗi test case đều cần một User object, và việc tạo thủ công mỗi lần
-// rất dài dòng và dễ quên field. Helper này đảm bảo ta luôn có
-// một User "đầy đủ" để test.
+// rất dài dòng và dễ quên field. Helper này tạo một User có sẵn
+// một số thông tin quan trọng, bỏ qua những thông tin kém quan trọng khác.
 func createTestUser(id, email, password string) *model.User {
 	// Hash password giống như production code làm
 	// Điều này QUAN TRỌNG vì LoginUser sẽ dùng bcrypt.CompareHashAndPassword
@@ -47,14 +47,12 @@ func createTestUser(id, email, password string) *model.User {
 	now := time.Now()
 
 	return &model.User{
-		ID:            id,
-		DisplayName:   "Test User",
-		Email:         email,
-		PasswordHash:  string(hashedPassword),
-		EmailVerified: false,
-		LastLoginAt:   nil, // Chưa login lần nào
-		CreatedAt:     now,
-		UpdatedAt:     now,
+		ID:           id,
+		DisplayName:  "Test User",
+		Email:        email,
+		PasswordHash: string(hashedPassword),
+		CreatedAt:    now,
+		UpdatedAt:    now,
 	}
 }
 
@@ -89,11 +87,10 @@ func TestCreateUser(t *testing.T) {
 	//	- input: Dữ liệu đầu vào
 	//	- setupMock: Function để setup mock expectations
 	//	- wantErr: Có expect error không?
-	//	- expectedErr: Error cụ tể expect nhận được
+	//	- expectedErr: Error cụ thể expect nhận được
 	//	- validate: Function để validate kết quả (optional)
 	testCases := []struct {
 		// name mô tả ngắn gọn test case đang test gì
-		// Convention: "should <expected bahavior> when <condition>"
 		name string
 
 		// input là CreateUserParams - đầu vào cho CreateUser
@@ -123,7 +120,7 @@ func TestCreateUser(t *testing.T) {
 			input: model.CreateUserParams{
 				DisplayName: "New User",
 				Email:       "newuser@example.com",
-				Password:    "strongpassword123",
+				Password:    "strongPassword123",
 			},
 			setupMock: func(mockRepo *MockUserRepository, mockToken *MockTokenMaker) {
 				// Expect: CheckEmailExists được gọi với email này
@@ -161,6 +158,7 @@ func TestCreateUser(t *testing.T) {
 				// Timestamp phải được set
 				assert.False(t, user.CreatedAt.IsZero())
 				assert.False(t, user.UpdatedAt.IsZero())
+				assert.Nil(t, user.DeletedAt)
 			},
 		},
 
@@ -170,7 +168,7 @@ func TestCreateUser(t *testing.T) {
 			input: model.CreateUserParams{
 				DisplayName: "Existing User",
 				Email:       "existing@example.com",
-				Password:    "strongpassword123",
+				Password:    "strongPassword123",
 			},
 			setupMock: func(mockRepo *MockUserRepository, mockToken *MockTokenMaker) {
 				// CheckEmailExists trả về TRUE = email đã tồn tại
@@ -253,7 +251,7 @@ func TestLoginUser(t *testing.T) {
 	// QUAN TRỌNG: User phải có password hash THẬT từ bcrypt
 	// Vì service code sẽ gọi bcrypt.CompareHashAndPassword
 	// Lưu ý: Mặc dù hai hash password khác giá trị do bcrypt random salt,
-	// nhưng khi so sánh chúng đều là một password.
+	// nhưng khi so sánh chúng đều là một password -> return true.
 	existingUser := createTestUser(testUserID, testEmail, testPassword)
 
 	testCases := []struct {
@@ -295,7 +293,7 @@ func TestLoginUser(t *testing.T) {
 			name: "error  - email not found",
 			input: model.LoginUserParams{
 				Email:    "nonexistent@example.com",
-				Password: "anypassword",
+				Password: "anyPassword",
 			},
 			setupMock: func(mockRepo *MockUserRepository, mockToken *MockTokenMaker) {
 				// FindUserByEmail trả về ErrUserNotFound
@@ -308,7 +306,7 @@ func TestLoginUser(t *testing.T) {
 			// QUAN TRỌNG: Service trả về ErrIncorrectCredentials, KHÔNG phải ErrUserNotFound
 			// Đây là security best practices: không cho attacker biết email có tồn tại hay không
 			expectedErr: model.ErrIncorrectCredentials,
-			validate:    nil, // không cần validate khi có error
+			validate:    nil, // không cần validate result khi có error
 		},
 
 		// Test case 3: Password sai
@@ -410,6 +408,81 @@ func TestLoginUser(t *testing.T) {
 
 			mockRepo.AssertExpectations(t)
 			mockToken.AssertExpectations(t)
+		})
+	}
+}
+
+// TestGetUserByID .
+// GetUserByID đơn giản, chỉ có 2 scenarios:
+//  1. Success - User tồn tại.
+//  2. User not found - ID không tồn tại
+func TestGetUserByID(t *testing.T) {
+	const testUserID = "user-123"
+	existingUser := createTestUser(testUserID, "user@example.com", "strongPassword123")
+
+	testCases := []struct {
+		name        string
+		input       string
+		setupMock   func(*MockUserRepository)
+		wantErr     bool
+		expectedErr error
+		validate    func(t *testing.T, user *model.User)
+	}{
+		{
+			name:  "success - user exists",
+			input: testUserID,
+			setupMock: func(mockRepo *MockUserRepository) {
+				mockRepo.On("FindUserByID", mock.Anything, testUserID).
+					Return(existingUser, nil)
+			},
+			wantErr:     false,
+			expectedErr: nil,
+			validate: func(t *testing.T, user *model.User) {
+				assert.Equal(t, testUserID, user.ID)
+				assert.Equal(t, "user@example.com", user.Email)
+			},
+		},
+		{
+			name:  "error - user not found",
+			input: "nonexistent-user-id",
+			setupMock: func(mockRepo *MockUserRepository) {
+				mockRepo.On("FindUserByID", mock.Anything, "nonexistent-user-id").
+					Return(nil, model.ErrUserNotFound)
+			},
+			wantErr:     true,
+			expectedErr: model.ErrUserNotFound,
+			validate:    nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Arrange
+			// GetUserByID không cần dùng TokenMaker, không cần hứng nó
+			mockRepo, _, svc := newMocksAndService()
+			tc.setupMock(mockRepo)
+
+			// Act
+			user, err := svc.GetUserByID(context.Background(), tc.input)
+
+			// Assert
+			if tc.wantErr {
+				require.Error(t, err)
+				require.Nil(t, user)
+
+				if tc.expectedErr != nil {
+					assert.ErrorIs(t, err, tc.expectedErr)
+				}
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, user)
+
+				if tc.validate != nil {
+					tc.validate(t, user)
+				}
+			}
+
+			mockRepo.AssertExpectations(t)
 		})
 	}
 }
