@@ -1,4 +1,4 @@
-// mock.go
+// mock_test.go
 // =============================================================================
 // File này chứa các MOCK OBJECTS - những "đồ giả" thay thế dependencies thật.
 //
