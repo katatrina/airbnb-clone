@@ -47,7 +47,11 @@ func (s *UserService) CreateUser(ctx context.Context, arg model.CreateUserParams
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	userID, _ := uuid.NewV7()
+	userID, err := uuid.NewV7()
+	if err != nil {
+		return nil, fmt.Errorf("failed to gen user id: %w", err)
+	}
+
 	now := time.Now()
 	user := model.User{
 		ID:            userID.String(),
