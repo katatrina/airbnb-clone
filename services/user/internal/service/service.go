@@ -88,7 +88,7 @@ func (s *UserService) LoginUser(ctx context.Context, arg model.LoginUserParams) 
 		return nil, err
 	}
 
-	accessToken, err := s.tokenMaker.CreateToken(user.ID)
+	accessToken, accessTokenExpiresAt, err := s.tokenMaker.CreateToken(user.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -97,10 +97,14 @@ func (s *UserService) LoginUser(ctx context.Context, arg model.LoginUserParams) 
 	err = s.userRepo.UpdateUserLastLogin(ctx, user.ID, now)
 	if err != nil {
 		log.Printf("[WARN] Failed to update last login for user: %v", err)
+	} else {
+		user.LastLoginAt = &now
 	}
 
 	return &model.LoginUserResult{
-		AccessToken: accessToken,
+		AccessToken:          accessToken,
+		AccessTokenExpiresAt: accessTokenExpiresAt,
+		User:                 user,
 	}, nil
 }
 

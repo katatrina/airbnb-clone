@@ -1,26 +1,10 @@
-// Package token provides functionality for creating and verifying authentication tokens.
-// It defines an interface (TokenMaker) that allows different token implementations
-// (JWT, Paseto, etc.) to be used interchangeably throughout the application.
-//
-// This package is intentionally placed in pkg/ (not internal/) because multiple
-// services need to verify tokens. For example:
-//   - user-service: creates tokens during login
-//   - listing-service: verifies tokens to authenticate requests
-//   - booking-service: verifies tokens to authenticate requests
 package token
 
 import "time"
 
-// TokenMaker is an interface for managing authentication tokens.
 type TokenMaker interface {
-	// CreateToken generates a new token for the given user ID.
-	// The token will be valid for the duration configured in the maker.
-	// Returns the token string or an error if token creation fails.
-	CreateToken(userID string) (string, error)
+	CreateToken(userID string) (string, time.Time, error)
 
-	// VerifyToken parses and validates a token string.
-	// Returns the claims embedded in the token if valid.
-	// Returns an error if the token is invalid, expired, or malformed.
 	VerifyToken(tokenString string) (*Claims, error)
 }
 

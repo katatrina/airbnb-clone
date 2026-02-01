@@ -61,8 +61,9 @@ func NewJWTMaker(secretKey []byte, expiry time.Duration) (*JWTMaker, error) {
 //   - jti (JWT ID): Unique identifier for this token (for revocation lists)
 //
 // The token is signed using HS256 (HMAC-SHA256) algorithm.
-func (m *JWTMaker) CreateToken(userID string) (string, error) {
+func (m *JWTMaker) CreateToken(userID string) (string, time.Time, error) {
 	now := time.Now()
+	expiresAt := now.Add(m.expiry)
 
 	// RegisteredClaims is from jwt/v5 and follows RFC 7519 standard claim names.
 	// Using standard claims makes your tokens interoperable with other systems.
@@ -73,7 +74,7 @@ func (m *JWTMaker) CreateToken(userID string) (string, error) {
 
 		// ExpiresAt is when this token becomes invalid.
 		// After this time, VerifyToken will return ErrTokenExpired.
-		ExpiresAt: jwt.NewNumericDate(now.Add(m.expiry)),
+		ExpiresAt: jwt.NewNumericDate(expiresAt),
 
 		// IssuedAt is when this token was created.
 		// Useful for debugging and for implementing "logout everywhere" features
@@ -95,9 +96,12 @@ func (m *JWTMaker) CreateToken(userID string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	// Sign the token with our secret key.
-	// This produces the final token string: header.payload.signature
-	return token.SignedString(m.secretKey)
+	tokenStr, err := token.SignedString(m.secretKey)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+
+	return tokenStr, expiresAt, nil
 }
 
 // VerifyToken parses a JWT string and validates it.

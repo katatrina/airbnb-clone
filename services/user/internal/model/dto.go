@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type CreateUserParams struct {
 	DisplayName string
 	Email       string
@@ -12,5 +14,7 @@ type LoginUserParams struct {
 }
 
 type LoginUserResult struct {
-	AccessToken string
+	AccessToken          string
+	AccessTokenExpiresAt time.Time
+	User                 *User
 }

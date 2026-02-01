@@ -35,13 +35,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		}
 	}
 
-	response.Created(c, UserResponse{
-		ID:            user.ID,
-		DisplayName:   user.DisplayName,
-		Email:         user.Email,
-		EmailVerified: user.EmailVerified,
-		CreatedAt:     user.CreatedAt.Unix(),
-	}, "User registered successfully")
+	response.Created(c, NewUserResponse(user), "User registered successfully")
 }
 
 func (h *UserHandler) Login(c *gin.Context) {
@@ -70,6 +64,8 @@ func (h *UserHandler) Login(c *gin.Context) {
 	}
 
 	response.OK(c, LoginResponse{
-		AccessToken: result.AccessToken,
+		AccessToken:          result.AccessToken,
+		AccessTokenExpiresAt: result.AccessTokenExpiresAt.Unix(),
+		User:                 NewUserResponse(result.User),
 	}, "User login successfully")
 }

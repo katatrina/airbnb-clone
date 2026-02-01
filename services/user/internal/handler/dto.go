@@ -1,5 +1,7 @@
 package handler
 
+import "github.com/katatrina/airbnb-clone/services/user/internal/model"
+
 type RegisterRequest struct {
 	// Lowercase to prevent duplicates
 	Email string `json:"email" validate:"required,email,max=255" normalize:"trim,lower"`
@@ -19,7 +21,9 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	AccessToken string `json:"accessToken"`
+	AccessToken          string       `json:"accessToken"`
+	AccessTokenExpiresAt int64        `json:"accessTokenExpiresAt"`
+	User                 UserResponse `json:"user"`
 }
 
 type UserResponse struct {
@@ -29,4 +33,24 @@ type UserResponse struct {
 	EmailVerified bool   `json:"emailVerified"`
 	LastLoginAt   *int64 `json:"lastLoginAt,omitempty"`
 	CreatedAt     int64  `json:"createdAt"`
+	UpdatedAt     int64  `json:"updatedAt"`
+}
+
+func NewUserResponse(user *model.User) UserResponse {
+	return UserResponse{
+		ID:            user.ID,
+		DisplayName:   user.DisplayName,
+		Email:         user.Email,
+		EmailVerified: user.EmailVerified,
+		LastLoginAt: func() *int64 {
+			if user.LastLoginAt == nil {
+				return nil
+			}
+
+			t := user.LastLoginAt.Unix()
+			return &t
+		}(),
+		CreatedAt: user.CreatedAt.Unix(),
+		UpdatedAt: user.UpdatedAt.Unix(),
+	}
 }
