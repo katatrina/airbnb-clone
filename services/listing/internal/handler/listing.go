@@ -230,7 +230,7 @@ func (h *ListingHandler) DeactivateListing(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, listing, "Deactivate listing successfully")
+	response.OK(c, NewListingResponse(listing), "Deactivate listing successfully")
 }
 
 func (h *ListingHandler) ReactivateListing(c *gin.Context) {
@@ -257,7 +257,7 @@ func (h *ListingHandler) ReactivateListing(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, listing, "Reactivate listing successfully")
+	response.OK(c, NewListingResponse(listing), "Reactivate listing successfully")
 }
 
 func (h *ListingHandler) DeleteListing(c *gin.Context) {

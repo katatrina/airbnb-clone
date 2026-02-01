@@ -82,8 +82,26 @@ func NewListingResponse(listing *model.Listing) *ListingResponse {
 
 func NewListingsResponse(listings []model.Listing) []ListingResponse {
 	resp := make([]ListingResponse, len(listings))
-	for i, listing := range listings {
-		resp[i] = *NewListingResponse(&listing)
+	for i := range listings {
+		l := &listings[i]
+
+		resp[i] = ListingResponse{
+			ID:            l.ID,
+			Title:         l.Title,
+			Description:   l.Description,
+			PricePerNight: l.PricePerNight,
+			Currency:      string(l.Currency),
+			ProvinceCode:  l.ProvinceCode,
+			ProvinceName:  l.ProvinceName,
+			DistrictCode:  l.DistrictCode,
+			DistrictName:  l.DistrictName,
+			WardCode:      l.WardCode,
+			WardName:      l.WardName,
+			AddressDetail: l.AddressDetail,
+			Status:        string(l.Status),
+			CreatedAt:     l.CreatedAt.Unix(),
+			UpdatedAt:     l.UpdatedAt.Unix(),
+		}
 	}
 	return resp
 }
