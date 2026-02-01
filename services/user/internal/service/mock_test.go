@@ -63,12 +63,15 @@ func (m *MockUserRepository) CheckEmailExists(ctx context.Context, email string)
 	return args.Bool(0), args.Error(1)
 }
 
-// CreateUser giả lập việc insert user vào DB.
-func (m *MockUserRepository) CreateUser(ctx context.Context, user *model.User) error {
+// CreateUser giả lập việc tạo user trong DB.
+func (m *MockUserRepository) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
 	args := m.Called(ctx, user)
 
-	// CreateUser chỉ return error, không có giá trị khác
-	return args.Error(0)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+
+	return args.Get(0).(*model.User), args.Error(1)
 }
 
 // FindUserByEmail giả lập việc tìm user theo email.

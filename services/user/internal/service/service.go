@@ -14,7 +14,7 @@ import (
 )
 
 type UserRepository interface {
-	CreateUser(ctx context.Context, user *model.User) error
+	CreateUser(ctx context.Context, user *model.User) (*model.User, error)
 	FindUserByEmail(ctx context.Context, email string) (*model.User, error)
 	FindUserByID(ctx context.Context, id string) (*model.User, error)
 	UpdateUserLastLogin(ctx context.Context, id string, lastLoginAt time.Time) error
@@ -63,12 +63,12 @@ func (s *UserService) CreateUser(ctx context.Context, arg model.CreateUserParams
 		UpdatedAt:     now,
 	}
 
-	err = s.userRepo.CreateUser(ctx, &user)
+	createdUser, err := s.userRepo.CreateUser(ctx, &user)
 	if err != nil {
 		return nil, err
 	}
 
-	return &user, nil
+	return createdUser, nil
 }
 
 func (s *UserService) LoginUser(ctx context.Context, arg model.LoginUserParams) (*model.LoginUserResult, error) {

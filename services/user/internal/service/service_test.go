@@ -1,5 +1,3 @@
-// service_test.go
-// Unit tests for UserService - focuses on business logic and mock interactions
 package service
 
 import (
@@ -52,8 +50,15 @@ func TestCreateUser(t *testing.T) {
 			setupMock: func(mockRepo *MockUserRepository, mockToken *MockTokenMaker) {
 				mockRepo.On("CheckEmailExists", mock.Anything, "newuser@example.com").
 					Return(false, nil)
+
+				hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("strongPassword123"), bcrypt.MinCost)
 				mockRepo.On("CreateUser", mock.Anything, mock.AnythingOfType("*model.User")).
-					Return(nil)
+					Return(&model.User{
+						ID:           "mock-user-id",
+						Email:        "newuser@example.com",
+						DisplayName:  "New User",
+						PasswordHash: string(hashedPassword),
+					}, nil)
 			},
 			wantErr:     false,
 			expectedErr: nil,

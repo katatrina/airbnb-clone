@@ -23,23 +23,26 @@ func (r *UserRepository) Close() {
 	r.db.Close()
 }
 
-func (r *UserRepository) CreateUser(ctx context.Context, user *model.User) error {
+func (r *UserRepository) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
 	query := `
 		INSERT INTO users (id, display_name, email, password_hash, email_verified, last_login_at, created_at, updated_at, deleted_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		RETURNING id, display_name, email, password_hash, email_verified, last_login_at, created_at, updated_at, deleted_at
 	`
 
-	_, err := r.db.Exec(ctx, query, user.ID, user.DisplayName, user.Email, user.PasswordHash, user.EmailVerified, user.LastLoginAt, user.CreatedAt, user.UpdatedAt, user.DeletedAt)
+	rows, _ := r.db.Query(ctx, query, user.ID, user.DisplayName, user.Email, user.PasswordHash, user.EmailVerified, user.LastLoginAt, user.CreatedAt, user.UpdatedAt, user.DeletedAt)
+	createdUser, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.User])
 	if err != nil {
 		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.ConstraintName == "users_email_key" {
-			return model.ErrEmailAlreadyExists
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" && pgErr.ConstraintName == "users_email_key" {
+				return nil, model.ErrEmailAlreadyExists
+			}
 		}
-
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &createdUser, nil
 }
 
 func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*model.User, error) {
