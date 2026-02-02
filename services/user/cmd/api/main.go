@@ -38,7 +38,7 @@ func main() {
 
 	tokenMaker, err := token.NewJWTMaker([]byte(cfg.JWTSecret), cfg.JWTExpiry)
 	if err != nil {
-		log.Fatalf("Cannot create token maker: %v", err)
+		log.Fatalf("Failed create token maker: %v", err)
 	}
 
 	userRepo := repository.NewUserRepository(db)

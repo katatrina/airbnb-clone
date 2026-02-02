@@ -8,7 +8,7 @@ import (
 	"github.com/katatrina/airbnb-clone/services/listing/internal/model"
 )
 
-func (r *ListingRepository) FindProvinceByCode(ctx context.Context, code string) (*model.Province, error) {
+func (r *LocationRepository) FindProvinceByCode(ctx context.Context, code string) (*model.Province, error) {
 	query := `
 		SELECT code, full_name, created_at
 		FROM provinces
@@ -27,7 +27,7 @@ func (r *ListingRepository) FindProvinceByCode(ctx context.Context, code string)
 	return &province, nil
 }
 
-func (r *ListingRepository) FindDistrictByCode(ctx context.Context, code string) (*model.District, error) {
+func (r *LocationRepository) FindDistrictByCode(ctx context.Context, code string) (*model.District, error) {
 	query := `
 		SELECT code, full_name, province_code, created_at
 		FROM districts
@@ -46,7 +46,7 @@ func (r *ListingRepository) FindDistrictByCode(ctx context.Context, code string)
 	return &district, nil
 }
 
-func (r *ListingRepository) FindWardByCode(ctx context.Context, code string) (*model.Ward, error) {
+func (r *LocationRepository) FindWardByCode(ctx context.Context, code string) (*model.Ward, error) {
 	query := `
 		SELECT code, full_name, district_code, created_at
 		FROM wards
@@ -65,7 +65,7 @@ func (r *ListingRepository) FindWardByCode(ctx context.Context, code string) (*m
 	return &ward, nil
 }
 
-func (r *ListingRepository) ListProvinces(ctx context.Context) ([]model.Province, error) {
+func (r *LocationRepository) ListProvinces(ctx context.Context) ([]model.Province, error) {
 	query := `
 		SELECT code, full_name, created_at
 		FROM provinces 
@@ -81,7 +81,7 @@ func (r *ListingRepository) ListProvinces(ctx context.Context) ([]model.Province
 	return provinces, nil
 }
 
-func (r *ListingRepository) ListDistrictsByProvinceCode(ctx context.Context, provinceCode string) ([]model.District, error) {
+func (r *LocationRepository) ListDistrictsByProvinceCode(ctx context.Context, provinceCode string) ([]model.District, error) {
 	query := `
 		SELECT code, full_name, province_code, created_at
 		FROM districts
@@ -98,7 +98,7 @@ func (r *ListingRepository) ListDistrictsByProvinceCode(ctx context.Context, pro
 	return districts, nil
 }
 
-func (r *ListingRepository) ListWardsByDistrictCode(ctx context.Context, districtCode string) ([]model.Ward, error) {
+func (r *LocationRepository) ListWardsByDistrictCode(ctx context.Context, districtCode string) ([]model.Ward, error) {
 	query := `
 		SELECT code, full_name, district_code, created_at
 		FROM wards

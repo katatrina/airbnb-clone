@@ -38,11 +38,12 @@ func main() {
 
 	tokenMaker, err := token.NewJWTMaker([]byte(cfg.JWTSecret), cfg.JWTExpiry)
 	if err != nil {
-		log.Fatalf("Cannot create token maker: %v", err)
+		log.Fatalf("Failed to create token maker: %v", err)
 	}
 
 	listingRepo := repository.NewListingRepository(db)
-	listingService := service.NewListingService(listingRepo, tokenMaker)
+	locationRepo := repository.NewLocationRepository(db)
+	listingService := service.NewListingService(listingRepo, locationRepo, tokenMaker)
 	listingHandler := handler.NewListingHandler(listingService)
 
 	router := gin.Default()

@@ -13,3 +13,13 @@ func NewListingRepository(db *pgxpool.Pool) *ListingRepository {
 		db: db,
 	}
 }
+
+type LocationRepository struct {
+	db *pgxpool.Pool
+}
+
+func NewLocationRepository(db *pgxpool.Pool) *LocationRepository {
+	return &LocationRepository{
+		db: db,
+	}
+}

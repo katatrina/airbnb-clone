@@ -11,12 +11,12 @@ import (
 )
 
 func (s *ListingService) CreateListing(ctx context.Context, arg model.CreateListingParams) (*model.Listing, error) {
-	province, err := s.listingRepo.FindProvinceByCode(ctx, arg.ProvinceCode)
+	province, err := s.locationRepo.FindProvinceByCode(ctx, arg.ProvinceCode)
 	if err != nil {
 		return nil, err
 	}
 
-	district, err := s.listingRepo.FindDistrictByCode(ctx, arg.DistrictCode)
+	district, err := s.locationRepo.FindDistrictByCode(ctx, arg.DistrictCode)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func (s *ListingService) CreateListing(ctx context.Context, arg model.CreateList
 		return nil, model.ErrDistrictProvinceMismatch
 	}
 
-	ward, err := s.listingRepo.FindWardByCode(ctx, arg.WardCode)
+	ward, err := s.locationRepo.FindWardByCode(ctx, arg.WardCode)
 	if err != nil {
 		return nil, err
 	}
@@ -58,16 +58,16 @@ func (s *ListingService) CreateListing(ctx context.Context, arg model.CreateList
 		CreatedAt:     now,
 		UpdatedAt:     now,
 	}
-	err = s.listingRepo.CreateListing(ctx, listing)
+	createdListing, err := s.listingRepo.Create(ctx, listing)
 	if err != nil {
 		return nil, err
 	}
 
-	return &listing, nil
+	return createdListing, nil
 }
 
 func (s *ListingService) GetActiveListingByID(ctx context.Context, id string) (*model.Listing, error) {
-	listing, err := s.listingRepo.FindListingByID(ctx, id)
+	listing, err := s.listingRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -80,12 +80,12 @@ func (s *ListingService) GetActiveListingByID(ctx context.Context, id string) (*
 }
 
 func (s *ListingService) ListActiveListings(ctx context.Context, limit, offset int) ([]model.Listing, int64, error) {
-	listings, err := s.listingRepo.ListListingsByStatus(ctx, model.ListingStatusActive, limit, offset)
+	listings, err := s.listingRepo.ListByStatus(ctx, model.ListingStatusActive, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	total, err := s.listingRepo.CountListingSByStatus(ctx, model.ListingStatusActive)
+	total, err := s.listingRepo.CountByStatus(ctx, model.ListingStatusActive)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -94,7 +94,7 @@ func (s *ListingService) ListActiveListings(ctx context.Context, limit, offset i
 }
 
 func (s *ListingService) PublishListing(ctx context.Context, listingID, hostID string) (*model.Listing, error) {
-	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
+	listing, err := s.listingRepo.FindByID(ctx, listingID)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (s *ListingService) PublishListing(ctx context.Context, listingID, hostID s
 		return nil, model.ErrListingIncomplete
 	}
 
-	err = s.listingRepo.UpdateListingStatus(ctx, listingID, model.ListingStatusActive)
+	err = s.listingRepo.UpdateStatus(ctx, listingID, model.ListingStatusActive)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func (s *ListingService) PublishListing(ctx context.Context, listingID, hostID s
 }
 
 func (s *ListingService) UpdateListingBasicInfo(ctx context.Context, listingID, hostID string, arg model.UpdateListingBasicInfoParams) (*model.Listing, error) {
-	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
+	listing, err := s.listingRepo.FindByID(ctx, listingID)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (s *ListingService) UpdateListingBasicInfo(ctx context.Context, listingID, 
 		return nil, model.ErrActiveListingCannotBeUpdated
 	}
 
-	updatedListing, err := s.listingRepo.UpdateListingBasicInfo(ctx, listingID, arg)
+	updatedListing, err := s.listingRepo.UpdateBasicInfo(ctx, listingID, arg)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func (s *ListingService) UpdateListingBasicInfo(ctx context.Context, listingID, 
 }
 
 func (s *ListingService) UpdateListingAddress(ctx context.Context, arg model.UpdateListingAddressParams) (*model.Listing, error) {
-	listing, err := s.listingRepo.FindListingByID(ctx, arg.ListingID)
+	listing, err := s.listingRepo.FindByID(ctx, arg.ListingID)
 	if err != nil {
 		return nil, err
 	}
@@ -164,12 +164,12 @@ func (s *ListingService) UpdateListingAddress(ctx context.Context, arg model.Upd
 	}
 
 	if arg.ProvinceCode != nil && arg.DistrictCode != nil && arg.WardCode != nil {
-		province, err := s.listingRepo.FindProvinceByCode(ctx, *arg.ProvinceCode)
+		province, err := s.locationRepo.FindProvinceByCode(ctx, *arg.ProvinceCode)
 		if err != nil {
 			return nil, err
 		}
 
-		district, err := s.listingRepo.FindDistrictByCode(ctx, *arg.DistrictCode)
+		district, err := s.locationRepo.FindDistrictByCode(ctx, *arg.DistrictCode)
 		if err != nil {
 			return nil, err
 		}
@@ -178,7 +178,7 @@ func (s *ListingService) UpdateListingAddress(ctx context.Context, arg model.Upd
 			return nil, model.ErrDistrictProvinceMismatch
 		}
 
-		ward, err := s.listingRepo.FindWardByCode(ctx, *arg.WardCode)
+		ward, err := s.locationRepo.FindWardByCode(ctx, *arg.WardCode)
 		if err != nil {
 			return nil, err
 		}
@@ -192,7 +192,7 @@ func (s *ListingService) UpdateListingAddress(ctx context.Context, arg model.Upd
 		arg.WardName = &ward.FullName
 	}
 
-	updatedListing, err := s.listingRepo.UpdateListingAddress(ctx, arg)
+	updatedListing, err := s.listingRepo.UpdateAddress(ctx, arg)
 	if err != nil {
 		return nil, err
 	}
@@ -205,11 +205,11 @@ func (s *ListingService) UpdateListingAddress(ctx context.Context, arg model.Upd
 }
 
 func (s *ListingService) ListHostListings(ctx context.Context, hostID string) ([]model.Listing, error) {
-	return s.listingRepo.ListHostListings(ctx, hostID)
+	return s.listingRepo.ListByHostID(ctx, hostID)
 }
 
 func (s *ListingService) GetHostListingByID(ctx context.Context, listingID, hostID string) (*model.Listing, error) {
-	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
+	listing, err := s.listingRepo.FindByID(ctx, listingID)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +222,7 @@ func (s *ListingService) GetHostListingByID(ctx context.Context, listingID, host
 }
 
 func (s *ListingService) DeleteListingByID(ctx context.Context, listingID, hostID string) error {
-	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
+	listing, err := s.listingRepo.FindByID(ctx, listingID)
 	if err != nil {
 		return err
 	}
@@ -235,11 +235,11 @@ func (s *ListingService) DeleteListingByID(ctx context.Context, listingID, hostI
 
 	// TODO: Check active booking(s) related to this listing (future in booking service)
 
-	return s.listingRepo.DeleteListingByID(ctx, listingID)
+	return s.listingRepo.Delete(ctx, listingID)
 }
 
 func (s *ListingService) DeactivateListingByID(ctx context.Context, listingID, hostID string) (*model.Listing, error) {
-	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
+	listing, err := s.listingRepo.FindByID(ctx, listingID)
 	if err != nil {
 		return nil, err
 	}
@@ -253,7 +253,7 @@ func (s *ListingService) DeactivateListingByID(ctx context.Context, listingID, h
 	}
 
 	newStatus := model.ListingStatusInactive
-	err = s.listingRepo.UpdateListingStatus(ctx, listingID, newStatus)
+	err = s.listingRepo.UpdateStatus(ctx, listingID, newStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +263,7 @@ func (s *ListingService) DeactivateListingByID(ctx context.Context, listingID, h
 }
 
 func (s *ListingService) ReactivateListingByID(ctx context.Context, listingID, hostID string) (*model.Listing, error) {
-	listing, err := s.listingRepo.FindListingByID(ctx, listingID)
+	listing, err := s.listingRepo.FindByID(ctx, listingID)
 	if err != nil {
 		return nil, err
 	}
@@ -279,7 +279,7 @@ func (s *ListingService) ReactivateListingByID(ctx context.Context, listingID, h
 	// We can skip validate completeness here (as we do when publishing listing)
 
 	newStatus := model.ListingStatusActive
-	err = s.listingRepo.UpdateListingStatus(ctx, listingID, newStatus)
+	err = s.listingRepo.UpdateStatus(ctx, listingID, newStatus)
 	if err != nil {
 		return nil, err
 	}

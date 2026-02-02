@@ -11,7 +11,7 @@ import (
 	"github.com/katatrina/airbnb-clone/services/listing/internal/model"
 )
 
-func (r *ListingRepository) CreateListing(ctx context.Context, listing model.Listing) error {
+func (r *ListingRepository) Create(ctx context.Context, listing model.Listing) (*model.Listing, error) {
 	query := `
 		INSERT INTO listings (
 			id, host_id, title, description, price_per_night, currency,
@@ -45,10 +45,14 @@ func (r *ListingRepository) CreateListing(ctx context.Context, listing model.Lis
 		listing.UpdatedAt,
 		listing.DeletedAt,
 	)
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	return &listing, nil
 }
 
-func (r *ListingRepository) FindListingByID(ctx context.Context, id string) (*model.Listing, error) {
+func (r *ListingRepository) FindByID(ctx context.Context, id string) (*model.Listing, error) {
 	query := `
 		SELECT
 			id, host_id, title, description, price_per_night, currency,
@@ -71,7 +75,7 @@ func (r *ListingRepository) FindListingByID(ctx context.Context, id string) (*mo
 	return &listing, nil
 }
 
-func (r *ListingRepository) ListListingsByStatus(
+func (r *ListingRepository) ListByStatus(
 	ctx context.Context,
 	status model.ListingStatus,
 	limit,
@@ -97,7 +101,7 @@ func (r *ListingRepository) ListListingsByStatus(
 	return listings, nil
 }
 
-func (r *ListingRepository) CountListingSByStatus(
+func (r *ListingRepository) CountByStatus(
 	ctx context.Context,
 	status model.ListingStatus,
 ) (int64, error) {
@@ -116,7 +120,7 @@ func (r *ListingRepository) CountListingSByStatus(
 	return count, nil
 }
 
-func (r *ListingRepository) UpdateListingStatus(ctx context.Context, id string, status model.ListingStatus) error {
+func (r *ListingRepository) UpdateStatus(ctx context.Context, id string, status model.ListingStatus) error {
 	query := `
 		UPDATE listings
 		SET status = $1, updated_at = NOW()
@@ -135,7 +139,7 @@ func (r *ListingRepository) UpdateListingStatus(ctx context.Context, id string, 
 	return nil
 }
 
-func (r *ListingRepository) UpdateListingBasicInfo(ctx context.Context, id string, params model.UpdateListingBasicInfoParams) (*model.Listing, error) {
+func (r *ListingRepository) UpdateBasicInfo(ctx context.Context, id string, params model.UpdateListingBasicInfoParams) (*model.Listing, error) {
 	var setClauses []string
 	var args []interface{}
 	paramIndex := 1
@@ -190,7 +194,7 @@ func (r *ListingRepository) UpdateListingBasicInfo(ctx context.Context, id strin
 	return &listing, nil
 }
 
-func (r *ListingRepository) UpdateListingAddress(ctx context.Context, params model.UpdateListingAddressParams) (*model.Listing, error) {
+func (r *ListingRepository) UpdateAddress(ctx context.Context, params model.UpdateListingAddressParams) (*model.Listing, error) {
 	var setClauses []string
 	var args []interface{}
 	paramIndex := 1
@@ -269,7 +273,7 @@ func (r *ListingRepository) UpdateListingAddress(ctx context.Context, params mod
 	return &listing, nil
 }
 
-func (r *ListingRepository) ListHostListings(ctx context.Context, hostID string) ([]model.Listing, error) {
+func (r *ListingRepository) ListByHostID(ctx context.Context, hostID string) ([]model.Listing, error) {
 	query := `
 		SELECT id, host_id, title, description, price_per_night, currency,
 			province_code, province_name, district_code, district_name,
@@ -289,7 +293,7 @@ func (r *ListingRepository) ListHostListings(ctx context.Context, hostID string)
 	return listings, nil
 }
 
-func (r *ListingRepository) DeleteListingByID(ctx context.Context, listingID string) error {
+func (r *ListingRepository) Delete(ctx context.Context, listingID string) error {
 	query := `
 		UPDATE listings
 		SET deleted_at = NOW()
