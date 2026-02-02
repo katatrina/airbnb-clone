@@ -14,7 +14,7 @@ import (
 )
 
 type UserRepository interface {
-	CreateUser(ctx context.Context, user *model.User) (*model.User, error)
+	CreateUser(ctx context.Context, user model.User) (*model.User, error)
 	FindUserByEmail(ctx context.Context, email string) (*model.User, error)
 	FindUserByID(ctx context.Context, id string) (*model.User, error)
 	UpdateUserLastLogin(ctx context.Context, id string, lastLoginAt time.Time) error
@@ -49,7 +49,7 @@ func (s *UserService) CreateUser(ctx context.Context, arg model.CreateUserParams
 
 	userID, err := uuid.NewV7()
 	if err != nil {
-		return nil, fmt.Errorf("failed to gen user id: %w", err)
+		return nil, fmt.Errorf("failed to generate user ID: %w", err)
 	}
 
 	now := time.Now()
@@ -63,7 +63,7 @@ func (s *UserService) CreateUser(ctx context.Context, arg model.CreateUserParams
 		UpdatedAt:     now,
 	}
 
-	createdUser, err := s.userRepo.CreateUser(ctx, &user)
+	createdUser, err := s.userRepo.CreateUser(ctx, user)
 	if err != nil {
 		return nil, err
 	}

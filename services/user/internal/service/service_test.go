@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/katatrina/airbnb-clone/services/user/internal/model"
 	"github.com/stretchr/testify/assert"
@@ -52,7 +53,7 @@ func TestCreateUser(t *testing.T) {
 					Return(false, nil)
 
 				hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("strongPassword123"), bcrypt.MinCost)
-				mockRepo.On("CreateUser", mock.Anything, mock.AnythingOfType("*model.User")).
+				mockRepo.On("CreateUser", mock.Anything, mock.AnythingOfType("model.User")).
 					Return(&model.User{
 						ID:           "mock-user-id",
 						Email:        "newuser@example.com",
@@ -137,7 +138,7 @@ func TestLoginUser(t *testing.T) {
 				mockRepo.On("FindUserByEmail", mock.Anything, testEmail).
 					Return(existingUser, nil)
 				mockToken.On("CreateToken", testUserID).
-					Return("jwt-token-xyz", nil)
+					Return("jwt-token-xyz", time.Now().Add(15*time.Minute), nil)
 				mockRepo.On("UpdateUserLastLogin", mock.Anything, testUserID, mock.AnythingOfType("time.Time")).
 					Return(nil)
 			},
@@ -145,6 +146,7 @@ func TestLoginUser(t *testing.T) {
 			expectedErr: nil,
 			validate: func(t *testing.T, result *model.LoginUserResult) {
 				assert.Equal(t, "jwt-token-xyz", result.AccessToken)
+				assert.NotZero(t, result.AccessTokenExpiresAt)
 			},
 		},
 		{
@@ -183,7 +185,7 @@ func TestLoginUser(t *testing.T) {
 				mockRepo.On("FindUserByEmail", mock.Anything, testEmail).
 					Return(existingUser, nil)
 				mockToken.On("CreateToken", testUserID).
-					Return("", errors.New("token creation failed"))
+					Return("", time.Time{}, errors.New("token creation failed"))
 			},
 			wantErr: true,
 		},
@@ -197,7 +199,7 @@ func TestLoginUser(t *testing.T) {
 				mockRepo.On("FindUserByEmail", mock.Anything, testEmail).
 					Return(existingUser, nil)
 				mockToken.On("CreateToken", testUserID).
-					Return("jwt-token-xyz", nil)
+					Return("jwt-token-xyz", time.Now().Add(15*time.Minute), nil)
 				mockRepo.On("UpdateUserLastLogin", mock.Anything, testUserID, mock.AnythingOfType("time.Time")).
 					Return(errors.New("update last login failed"))
 			},
@@ -205,6 +207,7 @@ func TestLoginUser(t *testing.T) {
 			expectedErr: nil,
 			validate: func(t *testing.T, result *model.LoginUserResult) {
 				assert.Equal(t, "jwt-token-xyz", result.AccessToken)
+				assert.NotZero(t, result.AccessTokenExpiresAt)
 			},
 		},
 	}

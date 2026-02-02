@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"time"
 	"unicode/utf8"
 
@@ -33,7 +34,11 @@ func (s *ListingService) CreateListing(ctx context.Context, arg model.CreateList
 		return nil, model.ErrWardDistrictMismatch
 	}
 
-	listingID, _ := uuid.NewV7()
+	listingID, err := uuid.NewV7()
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate listing ID: %w", err)
+	}
+
 	now := time.Now()
 	listing := model.Listing{
 		ID:            listingID.String(),

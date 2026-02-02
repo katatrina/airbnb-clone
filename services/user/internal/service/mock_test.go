@@ -64,7 +64,7 @@ func (m *MockUserRepository) CheckEmailExists(ctx context.Context, email string)
 }
 
 // CreateUser giả lập việc tạo user trong DB.
-func (m *MockUserRepository) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
+func (m *MockUserRepository) CreateUser(ctx context.Context, user model.User) (*model.User, error) {
 	args := m.Called(ctx, user)
 
 	if args.Get(0) == nil {
@@ -121,10 +121,10 @@ type MockTokenMaker struct {
 }
 
 // CreateToken giả lập việc tạo JWT token.
-func (m *MockTokenMaker) CreateToken(userID string) (string, error) {
+func (m *MockTokenMaker) CreateToken(userID string) (string, time.Time, error) {
 	args := m.Called(userID)
 
-	return args.String(0), args.Error(1)
+	return args.String(0), args.Get(1).(time.Time), args.Error(2)
 }
 
 // VerifyToken giả lập việc verify JWT token.

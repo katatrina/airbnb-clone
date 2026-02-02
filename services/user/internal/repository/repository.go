@@ -23,7 +23,7 @@ func (r *UserRepository) Close() {
 	r.db.Close()
 }
 
-func (r *UserRepository) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
+func (r *UserRepository) CreateUser(ctx context.Context, user model.User) (*model.User, error) {
 	query := `
 		INSERT INTO users (id, display_name, email, password_hash, email_verified, last_login_at, created_at, updated_at, deleted_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
