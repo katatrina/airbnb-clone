@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"log"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -36,6 +37,7 @@ func AuthMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 			case errors.Is(err, token.ErrTokenInvalid):
 				response.Unauthorized(c, response.CodeTokenInvalid, "Invalid token")
 			default:
+				log.Printf("Unexpected token verification error: %v", err)
 				response.Unauthorized(c, response.CodeAuthenticationRequired, "Authentication failed")
 			}
 			c.Abort()

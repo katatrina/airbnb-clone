@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"time"
-	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/model"
@@ -91,34 +90,6 @@ func (s *ListingService) ListActiveListings(ctx context.Context, limit, offset i
 	}
 
 	return listings, total, nil
-}
-
-func (s *ListingService) PublishListing(ctx context.Context, listingID, hostID string) (*model.Listing, error) {
-	listing, err := s.listingRepo.FindByID(ctx, listingID)
-	if err != nil {
-		return nil, err
-	}
-
-	if listing.HostID != hostID {
-		return nil, model.ErrListingOwnerMismatch
-	}
-
-	if listing.Status != model.ListingStatusDraft {
-		return nil, model.ErrListingNotDraft
-	}
-
-	// TODO: We can add more validation rules here later
-
-	if utf8.RuneCountInString(listing.Description) < 50 {
-		return nil, model.ErrListingIncomplete
-	}
-
-	updatedListing, err := s.listingRepo.UpdateStatus(ctx, listingID, model.ListingStatusActive)
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedListing, nil
 }
 
 func (s *ListingService) UpdateListingBasicInfo(ctx context.Context, listingID, hostID string, arg model.UpdateListingBasicInfoParams) (*model.Listing, error) {
@@ -221,57 +192,9 @@ func (s *ListingService) DeleteListingByID(ctx context.Context, listingID, hostI
 		return model.ErrListingOwnerMismatch
 	}
 
-	// Allow deleting listing from any status
+	// We allow to delete listing from any status
 
 	// TODO: Check active booking(s) related to this listing (future in booking service)
 
 	return s.listingRepo.Delete(ctx, listingID)
-}
-
-func (s *ListingService) DeactivateListingByID(ctx context.Context, listingID, hostID string) (*model.Listing, error) {
-	listing, err := s.listingRepo.FindByID(ctx, listingID)
-	if err != nil {
-		return nil, err
-	}
-
-	if listing.HostID != hostID {
-		return nil, model.ErrListingOwnerMismatch
-	}
-
-	if listing.Status != model.ListingStatusActive {
-		return nil, model.ErrListingNotActive
-	}
-
-	newStatus := model.ListingStatusInactive
-	updatedListing, err := s.listingRepo.UpdateStatus(ctx, listingID, newStatus)
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedListing, nil
-}
-
-func (s *ListingService) ReactivateListingByID(ctx context.Context, listingID, hostID string) (*model.Listing, error) {
-	listing, err := s.listingRepo.FindByID(ctx, listingID)
-	if err != nil {
-		return nil, err
-	}
-
-	if listing.HostID != hostID {
-		return nil, model.ErrListingOwnerMismatch
-	}
-
-	if listing.Status != model.ListingStatusInactive {
-		return nil, model.ErrListingNotInactive
-	}
-
-	// We can skip validate completeness here (as we do when publishing listing)
-
-	newStatus := model.ListingStatusActive
-	updatedListing, err := s.listingRepo.UpdateStatus(ctx, listingID, newStatus)
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedListing, nil
 }

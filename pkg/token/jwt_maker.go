@@ -9,7 +9,10 @@ import (
 	"github.com/google/uuid"
 )
 
-const MinHMACSecretKeySize = 32
+const (
+	MinHMACSecretKeySize = 32
+	MinTokenExpiry       = time.Minute * 5
+)
 
 // JWTMaker is a TokenMaker implementation that uses JSON Web Tokens (JWT).
 // It uses the HS256 (HMAC-SHA256) signing algorithm with a symmetric secret key.
@@ -43,6 +46,10 @@ var _ TokenMaker = (*JWTMaker)(nil)
 func NewJWTMaker(secretKey []byte, expiry time.Duration) (*JWTMaker, error) {
 	if len(secretKey) < MinHMACSecretKeySize {
 		return nil, fmt.Errorf("secret key must be at least %d bytes", MinHMACSecretKeySize)
+	}
+
+	if expiry < MinTokenExpiry {
+		return nil, fmt.Errorf("token expiry must be at least %s", MinTokenExpiry)
 	}
 
 	return &JWTMaker{

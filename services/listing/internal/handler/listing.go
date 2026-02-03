@@ -191,13 +191,14 @@ func (h *ListingHandler) PublishListing(c *gin.Context) {
 
 	listing, err := h.listingService.PublishListing(c.Request.Context(), listingID, userID)
 	if err != nil {
+		var incompleteErr *model.IncompleteListingError
 		switch {
 		case errors.Is(err, model.ErrListingNotFound), errors.Is(err, model.ErrListingOwnerMismatch):
 			response.NotFound(c, response.CodeListingNotFound, "Listing not found")
 		case errors.Is(err, model.ErrListingNotDraft):
 			response.BadRequest(c, response.CodeListingNotDraft, "Listing must be in draft status to publish")
-		case errors.Is(err, model.ErrListingIncomplete):
-			response.BadRequest(c, response.CodeListingIncomplete, "Listing is incomplete. Please add full required information before publishing")
+		case errors.As(err, &incompleteErr):
+			response.BadRequest(c, response.CodeListingIncomplete, incompleteErr.Error())
 		default:
 			log.Printf("[ERROR] failed to publish host listing: %v", err)
 			response.InternalServerError(c)
@@ -247,11 +248,14 @@ func (h *ListingHandler) ReactivateListing(c *gin.Context) {
 
 	listing, err := h.listingService.ReactivateListingByID(c.Request.Context(), listingID, userID)
 	if err != nil {
+		var incompleteErr *model.IncompleteListingError
 		switch {
 		case errors.Is(err, model.ErrListingNotFound), errors.Is(err, model.ErrListingOwnerMismatch):
 			response.NotFound(c, response.CodeListingNotFound, "Listing not found")
 		case errors.Is(err, model.ErrListingNotInactive):
 			response.BadRequest(c, response.CodeListingNotInactive, "Listing must be in inactive status to reactivate")
+		case errors.As(err, &incompleteErr):
+			response.BadRequest(c, response.CodeListingIncomplete, incompleteErr.Error())
 		default:
 			log.Printf("[ERROR] failed to reactivate host listing: %v", err)
 			response.InternalServerError(c)
@@ -292,6 +296,7 @@ func (h *ListingHandler) ListHostListings(c *gin.Context) {
 	userID := c.MustGet(constant.UserIDKey).(string)
 
 	// TODO: Add filtering and searching
+
 	listings, err := h.listingService.ListHostListings(c.Request.Context(), userID)
 	if err != nil {
 		log.Printf("[ERROR] failed to list host listings: %v", err)
@@ -302,7 +307,7 @@ func (h *ListingHandler) ListHostListings(c *gin.Context) {
 	response.OK(c, NewListingsResponse(listings), "")
 }
 
-func (h *ListingHandler) GetUserListing(c *gin.Context) {
+func (h *ListingHandler) GetHostListing(c *gin.Context) {
 	userID := c.MustGet(constant.UserIDKey).(string)
 	listingID := c.Param("id")
 

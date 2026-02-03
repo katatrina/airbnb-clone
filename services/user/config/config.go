@@ -26,11 +26,8 @@ func (c *Config) Validate() error {
 	if c.RedisURL == "" {
 		return errors.New("REDIS_URL is required")
 	}
-	if len(c.JWTSecret) < 32 {
-		return errors.New("JWT_SECRET must be at least 32 characters long")
-	}
-	if c.JWTExpiry <= 0 {
-		return errors.New("JWT_EXPIRY must be greater than 0")
+	if c.JWTSecret == "" {
+		return errors.New("JWT_SECRET is required")
 	}
 
 	return nil

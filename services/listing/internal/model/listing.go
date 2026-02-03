@@ -1,7 +1,9 @@
 package model
 
 import (
+	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 type (
@@ -37,22 +39,32 @@ type Listing struct {
 	DeletedAt     *time.Time      `db:"deleted_at"`
 }
 
-type Province struct {
-	Code      string    `db:"code"`
-	FullName  string    `db:"full_name"`
-	CreatedAt time.Time `db:"created_at"`
-}
+func (l *Listing) ValidateForPublish() error {
+	var missing []string
 
-type District struct {
-	Code         string    `db:"code"`
-	FullName     string    `db:"full_name"`
-	ProvinceCode string    `db:"province_code"`
-	CreatedAt    time.Time `db:"created_at"`
-}
+	if strings.TrimSpace(l.Title) == "" || utf8.RuneCountInString(l.Title) < 10 {
+		missing = append(missing, "title")
+	}
 
-type Ward struct {
-	Code         string    `db:"code"`
-	FullName     string    `db:"full_name"`
-	DistrictCode string    `db:"district_code"`
-	CreatedAt    time.Time `db:"created_at"`
+	if l.PricePerNight <= 0 {
+		missing = append(missing, "pricePerNight")
+	}
+
+	if utf8.RuneCountInString(l.Description) < 50 {
+		missing = append(missing, "description")
+	}
+
+	if l.ProvinceCode == "" || l.DistrictCode == "" || l.WardCode == "" {
+		missing = append(missing, "address")
+	}
+
+	if strings.TrimSpace(l.AddressDetail) == "" || utf8.RuneCountInString(l.AddressDetail) < 10 {
+		missing = append(missing, "addressDetail")
+	}
+
+	if len(missing) > 0 {
+		return &IncompleteListingError{MissingFields: missing}
+	}
+
+	return nil
 }
