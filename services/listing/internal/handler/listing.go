@@ -122,6 +122,7 @@ func (h *ListingHandler) UpdateListingBasicInfo(c *gin.Context) {
 		case errors.Is(err, model.ErrActiveListingCannotBeUpdated):
 			response.BadRequest(c, response.CodeActiveListingCannotBeUpdated, "Active listing cannot be updated")
 		default:
+			log.Printf("[ERROR] failed to update listing basic info: %v", err)
 			response.InternalServerError(c)
 		}
 
@@ -170,6 +171,7 @@ func (h *ListingHandler) UpdateListingAddress(c *gin.Context) {
 		case errors.Is(err, model.ErrWardDistrictMismatch):
 			response.BadRequest(c, response.CodeReferenceInvalid, "Ward does not belong to district")
 		default:
+			log.Printf("[ERROR] failed to update listing address: %v", err)
 			response.InternalServerError(c)
 		}
 
@@ -195,8 +197,9 @@ func (h *ListingHandler) PublishListing(c *gin.Context) {
 		case errors.Is(err, model.ErrListingNotDraft):
 			response.BadRequest(c, response.CodeListingNotDraft, "Listing must be in draft status to publish")
 		case errors.Is(err, model.ErrListingIncomplete):
-			response.BadRequest(c, response.CodeListingIncomplete, "Listing is incomplete. Please add full required information before publishing (min 50 characters)")
+			response.BadRequest(c, response.CodeListingIncomplete, "Listing is incomplete. Please add full required information before publishing")
 		default:
+			log.Printf("[ERROR] failed to publish host listing: %v", err)
 			response.InternalServerError(c)
 		}
 

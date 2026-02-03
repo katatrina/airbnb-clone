@@ -113,14 +113,12 @@ func (s *ListingService) PublishListing(ctx context.Context, listingID, hostID s
 		return nil, model.ErrListingIncomplete
 	}
 
-	err = s.listingRepo.UpdateStatus(ctx, listingID, model.ListingStatusActive)
+	updatedListing, err := s.listingRepo.UpdateStatus(ctx, listingID, model.ListingStatusActive)
 	if err != nil {
 		return nil, err
 	}
-	listing.Status = model.ListingStatusActive
-	listing.UpdatedAt = time.Now()
 
-	return listing, nil
+	return updatedListing, nil
 }
 
 func (s *ListingService) UpdateListingBasicInfo(ctx context.Context, listingID, hostID string, arg model.UpdateListingBasicInfoParams) (*model.Listing, error) {
@@ -140,10 +138,6 @@ func (s *ListingService) UpdateListingBasicInfo(ctx context.Context, listingID, 
 	updatedListing, err := s.listingRepo.UpdateBasicInfo(ctx, listingID, arg)
 	if err != nil {
 		return nil, err
-	}
-
-	if updatedListing == nil {
-		return listing, nil
 	}
 
 	return updatedListing, nil
@@ -195,10 +189,6 @@ func (s *ListingService) UpdateListingAddress(ctx context.Context, arg model.Upd
 	updatedListing, err := s.listingRepo.UpdateAddress(ctx, arg)
 	if err != nil {
 		return nil, err
-	}
-
-	if updatedListing == nil {
-		return listing, nil
 	}
 
 	return updatedListing, nil
@@ -253,13 +243,12 @@ func (s *ListingService) DeactivateListingByID(ctx context.Context, listingID, h
 	}
 
 	newStatus := model.ListingStatusInactive
-	err = s.listingRepo.UpdateStatus(ctx, listingID, newStatus)
+	updatedListing, err := s.listingRepo.UpdateStatus(ctx, listingID, newStatus)
 	if err != nil {
 		return nil, err
 	}
-	listing.Status = newStatus
 
-	return listing, nil
+	return updatedListing, nil
 }
 
 func (s *ListingService) ReactivateListingByID(ctx context.Context, listingID, hostID string) (*model.Listing, error) {
@@ -279,11 +268,10 @@ func (s *ListingService) ReactivateListingByID(ctx context.Context, listingID, h
 	// We can skip validate completeness here (as we do when publishing listing)
 
 	newStatus := model.ListingStatusActive
-	err = s.listingRepo.UpdateStatus(ctx, listingID, newStatus)
+	updatedListing, err := s.listingRepo.UpdateStatus(ctx, listingID, newStatus)
 	if err != nil {
 		return nil, err
 	}
-	listing.Status = newStatus
 
-	return listing, nil
+	return updatedListing, nil
 }

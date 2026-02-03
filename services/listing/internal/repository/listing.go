@@ -24,9 +24,14 @@ func (r *ListingRepository) Create(ctx context.Context, listing model.Listing) (
 			$11, $12, $13,
 			$14, $15, $16, $17
 		)
+		RETURNING
+			id, host_id, title, description, price_per_night, currency,
+			province_code, province_name, district_code, district_name,
+			ward_code, ward_name, address_detail,
+			status, created_at, updated_at, deleted_at
 	`
 
-	_, err := r.db.Exec(ctx, query,
+	rows, _ := r.db.Query(ctx, query,
 		listing.ID,
 		listing.HostID,
 		listing.Title,
@@ -45,11 +50,12 @@ func (r *ListingRepository) Create(ctx context.Context, listing model.Listing) (
 		listing.UpdatedAt,
 		listing.DeletedAt,
 	)
+	createdListing, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.Listing])
 	if err != nil {
 		return nil, err
 	}
 
-	return &listing, nil
+	return &createdListing, nil
 }
 
 func (r *ListingRepository) FindByID(ctx context.Context, id string) (*model.Listing, error) {
@@ -120,23 +126,28 @@ func (r *ListingRepository) CountByStatus(
 	return count, nil
 }
 
-func (r *ListingRepository) UpdateStatus(ctx context.Context, id string, status model.ListingStatus) error {
+func (r *ListingRepository) UpdateStatus(ctx context.Context, id string, status model.ListingStatus) (*model.Listing, error) {
 	query := `
 		UPDATE listings
 		SET status = $1, updated_at = NOW()
 		WHERE id = $2 AND deleted_at IS NULL
+		RETURNING
+			id, host_id, title, description, price_per_night, currency,
+			province_code, province_name, district_code, district_name,
+			ward_code, ward_name, address_detail,
+			status, created_at, updated_at, deleted_at
 	`
 
-	result, err := r.db.Exec(ctx, query, status, id)
+	rows, _ := r.db.Query(ctx, query, status, id)
+	listing, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[model.Listing])
 	if err != nil {
-		return err
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, model.ErrListingNotFound
+		}
+		return nil, err
 	}
 
-	if result.RowsAffected() == 0 {
-		return model.ErrListingNotFound
-	}
-
-	return nil
+	return &listing, nil
 }
 
 func (r *ListingRepository) UpdateBasicInfo(ctx context.Context, id string, params model.UpdateListingBasicInfoParams) (*model.Listing, error) {

@@ -50,7 +50,7 @@ func main() {
 
 	v1 := router.Group("/api/v1")
 	{
-		v1.GET("/health", listingHandler.Health)
+		v1.GET("/health", listingHandler.Health) // ✅
 
 		public := v1.Group("")
 		{
@@ -63,12 +63,12 @@ func main() {
 
 		protected := v1.Group("").Use(middleware.AuthMiddleware(tokenMaker))
 		{
-			protected.POST("/listings", listingHandler.CreateListing)
-			protected.POST("/listings/:id/publish", listingHandler.PublishListing)
+			protected.POST("/listings", listingHandler.CreateListing)              // ✅
+			protected.POST("/listings/:id/publish", listingHandler.PublishListing) //
 			protected.POST("/listings/:id/deactivate", listingHandler.DeactivateListing)
 			protected.POST("/listings/:id/reactivate", listingHandler.ReactivateListing)
-			protected.PATCH("/listings/:id/basic-info", listingHandler.UpdateListingBasicInfo)
-			protected.PATCH("/listings/:id/address", listingHandler.UpdateListingAddress)
+			protected.PATCH("/listings/:id/basic-info", listingHandler.UpdateListingBasicInfo) // ✅
+			protected.PATCH("/listings/:id/address", listingHandler.UpdateListingAddress)      // ✅
 			protected.DELETE("/listings/:id", listingHandler.DeleteListing)
 
 			protected.GET("/me/listings", listingHandler.ListHostListings)

@@ -17,7 +17,7 @@ type ListingRepository interface {
 	ListByHostID(ctx context.Context, hostID string) ([]model.Listing, error)
 	CountByStatus(ctx context.Context, status model.ListingStatus) (int64, error)
 
-	UpdateStatus(ctx context.Context, id string, status model.ListingStatus) error
+	UpdateStatus(ctx context.Context, id string, status model.ListingStatus) (*model.Listing, error)
 	UpdateBasicInfo(ctx context.Context, id string, arg model.UpdateListingBasicInfoParams) (*model.Listing, error)
 	UpdateAddress(ctx context.Context, arg model.UpdateListingAddressParams) (*model.Listing, error)
 }
