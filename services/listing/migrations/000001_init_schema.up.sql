@@ -1,7 +1,3 @@
--- ============================================================================
--- Master Data Tables
--- ============================================================================
-
 -- Provinces (Tỉnh/Thành phố)
 CREATE TABLE IF NOT EXISTS provinces
 (
@@ -27,10 +23,6 @@ CREATE TABLE IF NOT EXISTS wards
     district_code TEXT        NOT NULL,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
--- ============================================================================
--- Listings Table
--- ============================================================================
 
 CREATE TABLE IF NOT EXISTS listings
 (
@@ -62,9 +54,7 @@ CREATE TABLE IF NOT EXISTS listings
     deleted_at TIMESTAMPTZ
 );
 
--- ============================================================================
 -- Indexes
--- ============================================================================
 
 -- Pagination & filtering
 CREATE INDEX IF NOT EXISTS idx_listings_status_created_at
