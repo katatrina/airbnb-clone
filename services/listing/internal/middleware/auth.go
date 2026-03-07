@@ -21,13 +21,13 @@ func AuthMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 			return
 		}
 
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			response.Unauthorized(c, response.CodeAuthenticationRequired, "Authorization header format must be: Bearer {token}")
+		scheme, tokenString, found := strings.Cut(authHeader, " ")
+		if !found || scheme != "Bearer" || tokenString == "" {
+			response.Unauthorized(c, response.CodeAuthenticationRequired,
+				"Authorization header format must be: Bearer {token}")
 			c.Abort()
 			return
 		}
-		tokenString := parts[1]
 
 		claims, err := tokenMaker.VerifyToken(tokenString)
 		if err != nil {
