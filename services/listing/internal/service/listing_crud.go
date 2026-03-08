@@ -35,7 +35,7 @@ func (s *ListingService) CreateListing(ctx context.Context, arg model.CreateList
 
 	listingID, err := uuid.NewV7()
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate listing ID: %w", err)
+		return nil, fmt.Errorf("unexpected error occur when generating listing ID: %w", err)
 	}
 
 	now := time.Now()

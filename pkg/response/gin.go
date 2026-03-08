@@ -51,6 +51,11 @@ func InternalServerError(c *gin.Context) {
 	)
 }
 
+func ServiceUnavailable(c *gin.Context, message string) {
+	c.JSON(http.StatusServiceUnavailable,
+		New().Error(CodeServiceUnavailable, message).Build())
+}
+
 // HandleJSONBindingError properly handles different types of request.ShouldBindJSON errors.
 // It distinguishes between JSON parsing errors and validation errors,
 // returning appropriate error codes and messages.

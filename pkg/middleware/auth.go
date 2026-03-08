@@ -10,14 +10,16 @@ import (
 	"github.com/katatrina/airbnb-clone/pkg/token"
 )
 
-// AuthUser contains user info from token.
+// AuthUser contains user info from the token if authenticated.
 type AuthUser struct {
 	ID string
 }
 
 const AuthUserKey = "authUser"
 
-// GetAuthUser .
+// GetAuthUser returns AuthUser.
+//
+// Useful when the handler does not require auth, i.e.: public endpoints have extra info if login.
 func GetAuthUser(c *gin.Context) *AuthUser {
 	val, exists := c.Get(AuthUserKey)
 	if !exists {
@@ -26,7 +28,7 @@ func GetAuthUser(c *gin.Context) *AuthUser {
 	return val.(*AuthUser)
 }
 
-// MustGetAuthUser .
+// MustGetAuthUser returns AuthUser, panic if it does not exist.
 func MustGetAuthUser(c *gin.Context) *AuthUser {
 	val, exists := c.Get(AuthUserKey)
 	if !exists {
@@ -35,7 +37,7 @@ func MustGetAuthUser(c *gin.Context) *AuthUser {
 	return val.(*AuthUser)
 }
 
-// AuthMiddleware .
+// AuthMiddleware authenticates the request.
 func AuthMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")

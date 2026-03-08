@@ -29,11 +29,7 @@ func (h *ListingHandler) ListProvinces(c *gin.Context) {
 }
 
 func (h *ListingHandler) ListDistrictsByProvince(c *gin.Context) {
-	provinceCode := c.Query("provinceCode")
-	if provinceCode == "" {
-		response.BadRequest(c, response.CodeValidationFailed, "provinceCode is required")
-		return
-	}
+	provinceCode := c.Param("code")
 
 	districts, err := h.listingService.ListDistrictsByProvince(c.Request.Context(), provinceCode)
 	if err != nil {
@@ -60,11 +56,7 @@ func (h *ListingHandler) ListDistrictsByProvince(c *gin.Context) {
 }
 
 func (h *ListingHandler) ListWardsByDistrict(c *gin.Context) {
-	districtCode := c.Query("districtCode")
-	if districtCode == "" {
-		response.BadRequest(c, response.CodeValidationFailed, "districtCode is required")
-		return
-	}
+	districtCode := c.Param("code")
 
 	wards, err := h.listingService.ListWardsByDistrict(c.Request.Context(), districtCode)
 	if err != nil {

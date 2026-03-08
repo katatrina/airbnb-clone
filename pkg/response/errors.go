@@ -14,6 +14,7 @@ const (
 	CodeListingNotInactive           ErrorCode = "LISTING_NOT_INACTIVE"
 	CodeListingIncomplete            ErrorCode = "LISTING_INCOMPLETE"
 	CodeActiveListingCannotBeUpdated ErrorCode = "ACTIVE_LISTING_CANNOT_BE_UPDATED"
+	CodeBookingNotPending            ErrorCode = "BOOKING_NOT_PENDING"
 
 	CodeAuthenticationRequired ErrorCode = "AUTHENTICATION_REQUIRED"
 	CodeCredentialsInvalid     ErrorCode = "INVALID_CREDENTIALS"
@@ -25,8 +26,10 @@ const (
 	CodeProvinceNotFound ErrorCode = "PROVINCE_NOT_FOUND"
 	CodeDistrictNotFound ErrorCode = "DISTRICT_NOT_FOUND"
 	CodeWardNotFound     ErrorCode = "WARD_NOT_FOUND"
+	CodeBookingNotFound  ErrorCode = "BOOKING_NOT_FOUND"
 
 	CodeEmailAlreadyExists ErrorCode = "EMAIL_ALREADY_EXISTS"
+	CodeDatesUnavailable   ErrorCode = "DATES_UNAVAILABLE"
 
 	CodeTooManyRequests ErrorCode = "TOO_MANY_REQUESTS"
 

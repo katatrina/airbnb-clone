@@ -6,9 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/katatrina/airbnb-clone/pkg/middleware"
 	"github.com/katatrina/airbnb-clone/pkg/request"
 	"github.com/katatrina/airbnb-clone/pkg/response"
-	"github.com/katatrina/airbnb-clone/pkg/middleware"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/model"
 )
 

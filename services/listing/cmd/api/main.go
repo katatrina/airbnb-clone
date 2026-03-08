@@ -8,10 +8,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/katatrina/airbnb-clone/pkg/middleware"
 	"github.com/katatrina/airbnb-clone/pkg/token"
 	"github.com/katatrina/airbnb-clone/services/listing/config"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/handler"
-	"github.com/katatrina/airbnb-clone/pkg/middleware"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/repository"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/service"
 )
@@ -57,24 +57,22 @@ func main() {
 			public.GET("/listings", listingHandler.ListActiveListings)
 			public.GET("/listings/:id", listingHandler.GetActiveListing)
 			public.GET("/provinces", listingHandler.ListProvinces)
-			public.GET("/districts", listingHandler.ListDistrictsByProvince)
-			public.GET("/wards", listingHandler.ListWardsByDistrict)
+			public.GET("/provinces/:code/districts", listingHandler.ListDistrictsByProvince)
+			public.GET("/districts/:code/wards", listingHandler.ListWardsByDistrict)
 		}
 
-		protected := v1.Group("")
-		protected.Use(middleware.AuthMiddleware(tokenMaker))
+		hostListings := v1.Group("/me/listings")
+		hostListings.Use(middleware.AuthMiddleware(tokenMaker))
 		{
-			protected.POST("/listings", listingHandler.CreateListing)
-			protected.PATCH("/listings/:id/basic-info", listingHandler.UpdateListingBasicInfo)
-			protected.PATCH("/listings/:id/address", listingHandler.UpdateListingAddress)
-			protected.DELETE("/listings/:id", listingHandler.DeleteListing)
-
-			protected.POST("/listings/:id/publish", listingHandler.PublishListing)
-			protected.POST("/listings/:id/deactivate", listingHandler.DeactivateListing)
-			protected.POST("/listings/:id/reactivate", listingHandler.ReactivateListing)
-
-			protected.GET("/me/listings", listingHandler.ListHostListings)
-			protected.GET("/me/listings/:id", listingHandler.GetHostListing)
+			hostListings.POST("", listingHandler.CreateListing)
+			hostListings.GET("", listingHandler.ListHostListings)
+			hostListings.GET("/:id", listingHandler.GetHostListing)
+			hostListings.PATCH("/:id/basic-info", listingHandler.UpdateListingBasicInfo)
+			hostListings.PATCH("/:id/address", listingHandler.UpdateListingAddress)
+			hostListings.DELETE("/:id", listingHandler.DeleteListing)
+			hostListings.POST("/:id/publish", listingHandler.PublishListing)
+			hostListings.POST("/:id/deactivate", listingHandler.DeactivateListing)
+			hostListings.POST("/:id/reactivate", listingHandler.ReactivateListing)
 		}
 	}
 
