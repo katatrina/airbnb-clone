@@ -65,7 +65,7 @@ func main() {
 		protected := v1.Group("/me")
 		protected.Use(middleware.AuthMiddleware(tokenMaker))
 		{
-			protected.GET("", userHandler.GetMe)
+			protected.GET("/profile", userHandler.GetProfile)
 		}
 	}
 

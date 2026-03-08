@@ -44,12 +44,12 @@ func (s *UserService) CreateUser(ctx context.Context, arg model.CreateUserParams
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(arg.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, fmt.Errorf("failed to hash password: %w", err)
+		return nil, fmt.Errorf("unexpected error occur when generating hash password: %w", err)
 	}
 
 	userID, err := uuid.NewV7()
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate user ID: %w", err)
+		return nil, fmt.Errorf("unexpected error occur when generating user ID: %w", err)
 	}
 
 	now := time.Now()
@@ -85,12 +85,12 @@ func (s *UserService) LoginUser(ctx context.Context, arg model.LoginUserParams) 
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return nil, model.ErrIncorrectCredentials
 		}
-		return nil, err
+		return nil, fmt.Errorf("unexpected error occur when comparing password: %w", err)
 	}
 
 	accessToken, accessTokenExpiresAt, err := s.tokenMaker.CreateToken(user.ID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unexpected error occur when generating token: %w", err)
 	}
 
 	now := time.Now()

@@ -10,7 +10,7 @@ import (
 	"github.com/katatrina/airbnb-clone/services/user/internal/model"
 )
 
-func (h *UserHandler) GetMe(c *gin.Context) {
+func (h *UserHandler) GetProfile(c *gin.Context) {
 	userID := middleware.MustGetAuthUser(c).ID
 
 	user, err := h.userService.GetUserByID(c.Request.Context(), userID)
