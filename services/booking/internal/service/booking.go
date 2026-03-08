@@ -33,7 +33,7 @@ func (s *BookingService) CreateBooking(ctx context.Context, arg model.CreateBook
 
 	bookingID, err := uuid.NewV7()
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate booking ID: %w", err)
+		return nil, fmt.Errorf("unexpected error occur when generating booking ID: %w", err)
 	}
 
 	now := time.Now()

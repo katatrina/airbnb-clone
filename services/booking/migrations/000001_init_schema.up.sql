@@ -27,11 +27,10 @@ CREATE TABLE IF NOT EXISTS bookings
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at      TIMESTAMPTZ,
 
-    -- Validation constraints
     CONSTRAINT check_dates CHECK (check_out_date > check_in_date),
     CONSTRAINT check_nights CHECK (total_nights > 0),
     CONSTRAINT check_price CHECK (price_per_night > 0 AND total_price > 0)
-    );
+);
 
 -- Prevent double booking at database level
 ALTER TABLE bookings
@@ -42,11 +41,18 @@ ALTER TABLE bookings
         WHERE (status IN ('pending', 'confirmed') AND deleted_at IS NULL);
 
 -- Indexes
+
+-- Guests view their bookings: WHERE guest_id = ? AND deleted_at IS NULL
 CREATE INDEX idx_bookings_guest
-    ON bookings (guest_id, status) WHERE deleted_at IS NULL;
+    ON bookings (guest_id, status)
+    WHERE deleted_at IS NULL;
 
+-- Hosts view their listing's bookings: WHERE host_id = ? AND deleted_at IS NULL
 CREATE INDEX idx_bookings_host
-    ON bookings (host_id, status) WHERE deleted_at IS NULL;
+    ON bookings (host_id, status)
+    WHERE deleted_at IS NULL;
 
+-- Query booking by listing: WHERE listing_id = ? (check availability, list bookings)
 CREATE INDEX idx_bookings_listing
-    ON bookings (listing_id, status) WHERE deleted_at IS NULL;
+    ON bookings (listing_id, status)
+    WHERE deleted_at IS NULL;

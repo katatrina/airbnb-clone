@@ -61,7 +61,7 @@ func main() {
 		protected := v1.Group("")
 		protected.Use(middleware.AuthMiddleware(tokenMaker))
 		{
-			protected.POST("/bookings", bookingHandler.CreateBooking)
+			protected.POST("/me/bookings", bookingHandler.CreateBooking)
 
 			protected.GET("/me/bookings", bookingHandler.ListGuestBookings)
 			protected.GET("/me/bookings/:id", bookingHandler.GetBooking)
