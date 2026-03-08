@@ -8,11 +8,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/katatrina/airbnb-clone/pkg/middleware"
+	"github.com/katatrina/airbnb-clone/pkg/response"
 	"github.com/katatrina/airbnb-clone/pkg/token"
 	"github.com/katatrina/airbnb-clone/services/booking/config"
 	"github.com/katatrina/airbnb-clone/services/booking/internal/client"
 	"github.com/katatrina/airbnb-clone/services/booking/internal/handler"
-	"github.com/katatrina/airbnb-clone/pkg/middleware"
 	"github.com/katatrina/airbnb-clone/services/booking/internal/repository"
 	"github.com/katatrina/airbnb-clone/services/booking/internal/service"
 )
@@ -49,11 +50,16 @@ func main() {
 
 	router := gin.Default()
 
+	router.NoRoute(func(c *gin.Context) {
+		response.NotFound(c, response.CodeRouteNotFound, "The requested endpoint does not exist")
+	})
+
 	router.GET("/health", bookingHandler.Health)
 
 	v1 := router.Group("/api/v1")
 	{
-		protected := v1.Group("").Use(middleware.AuthMiddleware(tokenMaker))
+		protected := v1.Group("")
+		protected.Use(middleware.AuthMiddleware(tokenMaker))
 		{
 			protected.POST("/bookings", bookingHandler.CreateBooking)
 

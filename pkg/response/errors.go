@@ -33,6 +33,8 @@ const (
 
 	CodeTooManyRequests ErrorCode = "TOO_MANY_REQUESTS"
 
+	CodeRouteNotFound ErrorCode = "ROUTE_NOT_FOUND"
+
 	CodeInternalServerError ErrorCode = "INTERNAL_SERVER_ERROR"
 	CodeServiceUnavailable  ErrorCode = "SERVICE_UNAVAILABLE"
 )

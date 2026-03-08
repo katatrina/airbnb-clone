@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/katatrina/airbnb-clone/pkg/middleware"
+	"github.com/katatrina/airbnb-clone/pkg/response"
 	"github.com/katatrina/airbnb-clone/pkg/token"
 	"github.com/katatrina/airbnb-clone/services/listing/config"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/handler"
@@ -47,6 +48,10 @@ func main() {
 	listingHandler := handler.NewListingHandler(listingService)
 
 	router := gin.Default()
+
+	router.NoRoute(func(c *gin.Context) {
+		response.NotFound(c, response.CodeRouteNotFound, "The requested endpoint does not exist")
+	})
 
 	router.GET("/health", listingHandler.Health)
 

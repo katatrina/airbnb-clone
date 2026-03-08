@@ -8,10 +8,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/katatrina/airbnb-clone/pkg/middleware"
+	"github.com/katatrina/airbnb-clone/pkg/response"
 	"github.com/katatrina/airbnb-clone/pkg/token"
 	"github.com/katatrina/airbnb-clone/services/user/config"
 	"github.com/katatrina/airbnb-clone/services/user/internal/handler"
-	"github.com/katatrina/airbnb-clone/pkg/middleware"
 	"github.com/katatrina/airbnb-clone/services/user/internal/repository"
 	"github.com/katatrina/airbnb-clone/services/user/internal/service"
 )
@@ -47,6 +48,10 @@ func main() {
 
 	router := gin.Default()
 
+	router.NoRoute(func(c *gin.Context) {
+		response.NotFound(c, response.CodeRouteNotFound, "The requested endpoint does not exist")
+	})
+
 	router.GET("/health", userHandler.Health)
 
 	v1 := router.Group("/api/v1")
@@ -57,10 +62,10 @@ func main() {
 			auth.POST("/login", userHandler.Login)
 		}
 
-		users := v1.Group("/me")
-		users.Use(middleware.AuthMiddleware(tokenMaker))
+		protected := v1.Group("/me")
+		protected.Use(middleware.AuthMiddleware(tokenMaker))
 		{
-			users.GET("", userHandler.GetMe)
+			protected.GET("", userHandler.GetMe)
 		}
 	}
 
