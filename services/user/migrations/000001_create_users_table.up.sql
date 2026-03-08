@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS users
+CREATE TABLE users
 (
     id             UUID PRIMARY KEY,
     display_name   TEXT NOT NULL,

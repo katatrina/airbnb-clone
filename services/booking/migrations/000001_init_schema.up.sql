@@ -1,7 +1,9 @@
--- Required for exclusion constraint with UUID + daterange
-CREATE EXTENSION IF NOT EXISTS btree_gist;
+BEGIN;
 
-CREATE TABLE IF NOT EXISTS bookings
+-- Required for exclusion constraint with UUID + daterange
+CREATE EXTENSION IF NOT EXISTS btree_gist; -- Note: This extension needs superuser privileges
+
+CREATE TABLE bookings
 (
     -- Identity
     id              UUID PRIMARY KEY,
@@ -56,3 +58,5 @@ CREATE INDEX idx_bookings_host
 CREATE INDEX idx_bookings_listing
     ON bookings (listing_id, status)
     WHERE deleted_at IS NULL;
+
+COMMIT;

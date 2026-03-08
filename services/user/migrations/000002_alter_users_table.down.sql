@@ -1,4 +1,4 @@
-ALTER TABLE IF EXISTS users
-    DROP COLUMN IF EXISTS email_verified,
-    DROP COLUMN IF EXISTS deleted_at,
-    DROP COLUMN IF EXISTS last_login_at;
+ALTER TABLE users
+    DROP COLUMN email_verified,
+    DROP COLUMN deleted_at,
+    DROP COLUMN last_login_at;

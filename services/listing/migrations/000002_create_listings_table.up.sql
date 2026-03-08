@@ -1,30 +1,6 @@
--- Provinces (Tỉnh/Thành phố)
-CREATE TABLE IF NOT EXISTS provinces
-(
-    code       TEXT PRIMARY KEY,
-    full_name  TEXT        NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+BEGIN;
 
--- Districts (Quận/Huyện)
-CREATE TABLE IF NOT EXISTS districts
-(
-    code          TEXT PRIMARY KEY,
-    full_name     TEXT        NOT NULL,
-    province_code TEXT        NOT NULL,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- Wards (Phường/Xã/Thị trấn)
-CREATE TABLE IF NOT EXISTS wards
-(
-    code          TEXT PRIMARY KEY,
-    full_name     TEXT        NOT NULL,
-    district_code TEXT        NOT NULL,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS listings
+CREATE TABLE listings
 (
     -- Identity
     id      UUID PRIMARY KEY,
@@ -57,25 +33,27 @@ CREATE TABLE IF NOT EXISTS listings
 -- Indexes
 
 -- Pagination & filtering
-CREATE INDEX IF NOT EXISTS idx_listings_status_created_at
+CREATE INDEX idx_listings_status_created_at
     ON listings (status, created_at DESC)
     WHERE deleted_at IS NULL;
 
 -- Count queries
-CREATE INDEX IF NOT EXISTS idx_listings_status_deleted_at
+CREATE INDEX idx_listings_status_deleted_at
     ON listings (status)
     WHERE deleted_at IS NULL;
 
 -- Location-based queries
-CREATE INDEX IF NOT EXISTS idx_listings_province
+CREATE INDEX idx_listings_province
     ON listings (province_code, status)
     WHERE deleted_at IS NULL;
 
-CREATE INDEX IF NOT EXISTS idx_listings_district
+CREATE INDEX idx_listings_district
     ON listings (district_code, status)
     WHERE deleted_at IS NULL;
 
 -- Host's listings
-CREATE INDEX IF NOT EXISTS idx_listings_host
+CREATE INDEX idx_listings_host
     ON listings (host_id, status)
     WHERE deleted_at IS NULL;
+
+COMMIT;
