@@ -11,7 +11,7 @@ import (
 	"github.com/katatrina/airbnb-clone/pkg/token"
 	"github.com/katatrina/airbnb-clone/services/listing/config"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/handler"
-	"github.com/katatrina/airbnb-clone/services/listing/internal/middleware"
+	"github.com/katatrina/airbnb-clone/pkg/middleware"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/repository"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/service"
 )
@@ -48,10 +48,10 @@ func main() {
 
 	router := gin.Default()
 
+	router.GET("/health", listingHandler.Health)
+
 	v1 := router.Group("/api/v1")
 	{
-		v1.GET("/health", listingHandler.Health) // ✅
-
 		public := v1.Group("")
 		{
 			public.GET("/listings", listingHandler.ListActiveListings)
@@ -61,19 +61,20 @@ func main() {
 			public.GET("/wards", listingHandler.ListWardsByDistrict)
 		}
 
-		protected := v1.Group("").Use(middleware.AuthMiddleware(tokenMaker))
+		protected := v1.Group("")
+		protected.Use(middleware.AuthMiddleware(tokenMaker))
 		{
-			protected.POST("/listings", listingHandler.CreateListing)                          // ✅
-			protected.PATCH("/listings/:id/basic-info", listingHandler.UpdateListingBasicInfo) // ✅
-			protected.PATCH("/listings/:id/address", listingHandler.UpdateListingAddress)      // ✅
-			protected.DELETE("/listings/:id", listingHandler.DeleteListing)                    // ✅
+			protected.POST("/listings", listingHandler.CreateListing)
+			protected.PATCH("/listings/:id/basic-info", listingHandler.UpdateListingBasicInfo)
+			protected.PATCH("/listings/:id/address", listingHandler.UpdateListingAddress)
+			protected.DELETE("/listings/:id", listingHandler.DeleteListing)
 
-			protected.POST("/listings/:id/publish", listingHandler.PublishListing)       // ✅
-			protected.POST("/listings/:id/deactivate", listingHandler.DeactivateListing) // ✅
-			protected.POST("/listings/:id/reactivate", listingHandler.ReactivateListing) // ✅
+			protected.POST("/listings/:id/publish", listingHandler.PublishListing)
+			protected.POST("/listings/:id/deactivate", listingHandler.DeactivateListing)
+			protected.POST("/listings/:id/reactivate", listingHandler.ReactivateListing)
 
-			protected.GET("/me/listings", listingHandler.ListHostListings)   // ✅
-			protected.GET("/me/listings/:id", listingHandler.GetHostListing) // ✅
+			protected.GET("/me/listings", listingHandler.ListHostListings)
+			protected.GET("/me/listings/:id", listingHandler.GetHostListing)
 		}
 	}
 

@@ -1,0 +1,54 @@
+package config
+
+import (
+	"errors"
+	"time"
+
+	"github.com/spf13/viper"
+)
+
+type Config struct {
+	ServerPort        string        `mapstructure:"SERVER_PORT"`
+	DatabaseURL       string        `mapstructure:"DATABASE_URL"`
+	ListingServiceURL string        `mapstructure:"LISTING_SERVICE_URL"`
+	JWTSecret         string        `mapstructure:"JWT_SECRET"`
+	JWTExpiry         time.Duration `mapstructure:"JWT_EXPIRY"`
+}
+
+// Validate checks that all required configuration is present.
+func (c *Config) Validate() error {
+	if c.ServerPort == "" {
+		return errors.New("SERVER_PORT is required")
+	}
+	if c.DatabaseURL == "" {
+		return errors.New("DATABASE_URL is required")
+	}
+	if c.ListingServiceURL == "" {
+		return errors.New("LISTING_SERVICE_URL is required")
+	}
+	if c.JWTSecret == "" {
+		return errors.New("JWT_SECRET is required")
+	}
+
+	return nil
+}
+
+func LoadConfig(path string) (*Config, error) {
+	viper.AutomaticEnv()
+	viper.SetConfigFile(path)
+
+	if err := viper.ReadInConfig(); err != nil {
+		return nil, err
+	}
+
+	var cfg Config
+	if err := viper.Unmarshal(&cfg); err != nil {
+		return nil, err
+	}
+
+	if err := cfg.Validate(); err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
+}

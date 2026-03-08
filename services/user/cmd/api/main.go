@@ -11,7 +11,7 @@ import (
 	"github.com/katatrina/airbnb-clone/pkg/token"
 	"github.com/katatrina/airbnb-clone/services/user/config"
 	"github.com/katatrina/airbnb-clone/services/user/internal/handler"
-	"github.com/katatrina/airbnb-clone/services/user/internal/middleware"
+	"github.com/katatrina/airbnb-clone/pkg/middleware"
 	"github.com/katatrina/airbnb-clone/services/user/internal/repository"
 	"github.com/katatrina/airbnb-clone/services/user/internal/service"
 )
@@ -47,10 +47,10 @@ func main() {
 
 	router := gin.Default()
 
+	router.GET("/health", userHandler.Health)
+
 	v1 := router.Group("/api/v1")
 	{
-		v1.GET("/health", userHandler.Health)
-
 		auth := v1.Group("/auth")
 		{
 			auth.POST("/register", userHandler.Register)

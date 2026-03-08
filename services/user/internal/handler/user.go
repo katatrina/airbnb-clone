@@ -5,13 +5,13 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	"github.com/katatrina/airbnb-clone/pkg/middleware"
 	"github.com/katatrina/airbnb-clone/pkg/response"
-	"github.com/katatrina/airbnb-clone/services/user/internal/constant"
 	"github.com/katatrina/airbnb-clone/services/user/internal/model"
 )
 
 func (h *UserHandler) GetMe(c *gin.Context) {
-	userID := c.MustGet(constant.UserIDKey).(string)
+	userID := middleware.MustGetAuthUser(c).ID
 
 	user, err := h.userService.GetUserByID(c.Request.Context(), userID)
 	if err != nil {

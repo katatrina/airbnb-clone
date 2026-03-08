@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/katatrina/airbnb-clone/pkg/request"
 	"github.com/katatrina/airbnb-clone/pkg/response"
-	"github.com/katatrina/airbnb-clone/services/listing/internal/constant"
+	"github.com/katatrina/airbnb-clone/pkg/middleware"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/model"
 )
 
@@ -55,7 +55,7 @@ func (h *ListingHandler) GetActiveListing(c *gin.Context) {
 }
 
 func (h *ListingHandler) CreateListing(c *gin.Context) {
-	userID := c.MustGet(constant.UserIDKey).(string)
+	userID := middleware.MustGetAuthUser(c).ID
 
 	var req CreateListingRequest
 
@@ -97,7 +97,7 @@ func (h *ListingHandler) CreateListing(c *gin.Context) {
 }
 
 func (h *ListingHandler) UpdateListingBasicInfo(c *gin.Context) {
-	userID := c.MustGet(constant.UserIDKey).(string)
+	userID := middleware.MustGetAuthUser(c).ID
 	listingID := c.Param("id")
 	if _, err := uuid.Parse(listingID); err != nil {
 		response.BadRequest(c, response.CodeValidationFailed, "Invalid listing ID format")
@@ -133,7 +133,7 @@ func (h *ListingHandler) UpdateListingBasicInfo(c *gin.Context) {
 }
 
 func (h *ListingHandler) UpdateListingAddress(c *gin.Context) {
-	userID := c.MustGet(constant.UserIDKey).(string)
+	userID := middleware.MustGetAuthUser(c).ID
 	listingID := c.Param("id")
 	if _, err := uuid.Parse(listingID); err != nil {
 		response.BadRequest(c, response.CodeValidationFailed, "Invalid listing ID format")
@@ -182,7 +182,7 @@ func (h *ListingHandler) UpdateListingAddress(c *gin.Context) {
 }
 
 func (h *ListingHandler) PublishListing(c *gin.Context) {
-	userID := c.MustGet(constant.UserIDKey).(string)
+	userID := middleware.MustGetAuthUser(c).ID
 	listingID := c.Param("id")
 	if _, err := uuid.Parse(listingID); err != nil {
 		response.BadRequest(c, response.CodeValidationFailed, "Invalid listing ID format")
@@ -211,7 +211,7 @@ func (h *ListingHandler) PublishListing(c *gin.Context) {
 }
 
 func (h *ListingHandler) DeactivateListing(c *gin.Context) {
-	userID := c.MustGet(constant.UserIDKey).(string)
+	userID := middleware.MustGetAuthUser(c).ID
 	listingID := c.Param("id")
 
 	if _, err := uuid.Parse(listingID); err != nil {
@@ -238,7 +238,7 @@ func (h *ListingHandler) DeactivateListing(c *gin.Context) {
 }
 
 func (h *ListingHandler) ReactivateListing(c *gin.Context) {
-	userID := c.MustGet(constant.UserIDKey).(string)
+	userID := middleware.MustGetAuthUser(c).ID
 	listingID := c.Param("id")
 
 	if _, err := uuid.Parse(listingID); err != nil {
@@ -268,7 +268,7 @@ func (h *ListingHandler) ReactivateListing(c *gin.Context) {
 }
 
 func (h *ListingHandler) DeleteListing(c *gin.Context) {
-	userID := c.MustGet(constant.UserIDKey).(string)
+	userID := middleware.MustGetAuthUser(c).ID
 	listingID := c.Param("id")
 
 	if _, err := uuid.Parse(listingID); err != nil {
@@ -293,7 +293,7 @@ func (h *ListingHandler) DeleteListing(c *gin.Context) {
 }
 
 func (h *ListingHandler) ListHostListings(c *gin.Context) {
-	userID := c.MustGet(constant.UserIDKey).(string)
+	userID := middleware.MustGetAuthUser(c).ID
 
 	// TODO: Add filtering and searching
 
@@ -308,7 +308,7 @@ func (h *ListingHandler) ListHostListings(c *gin.Context) {
 }
 
 func (h *ListingHandler) GetHostListing(c *gin.Context) {
-	userID := c.MustGet(constant.UserIDKey).(string)
+	userID := middleware.MustGetAuthUser(c).ID
 	listingID := c.Param("id")
 
 	if _, err := uuid.Parse(listingID); err != nil {
