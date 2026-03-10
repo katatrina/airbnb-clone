@@ -1,0 +1,160 @@
+# =============================================================================
+#
+# golangci-lint v2 — Starter Config cho Junior Go Developer
+#
+# Dựa trên "Golden config" của maratori, nhưng đã giảm bớt độ strict
+# để phù hợp với người mới bắt đầu. Khi bạn đã quen, hãy dần bật thêm
+# các linter được ghi trong phần "NÂNG CAO" bên dưới.
+#
+# Tham khảo Golden config gốc:
+#   https://github.com/maratori/golangci-lint-config
+#
+# Tham khảo tất cả options:
+#   https://github.com/golangci/golangci-lint/blob/HEAD/.golangci.reference.yml
+#
+# =============================================================================
+
+version: "2"
+
+# -----------------------------------------------------------------------------
+# Formatters — tự động format code
+# -----------------------------------------------------------------------------
+formatters:
+  enable:
+    - goimports # sắp xếp import đúng chuẩn (stdlib | third-party | local)
+
+  settings:
+    goimports:
+      # ĐỔI LẠI thành module path của project bạn
+      # Ví dụ: github.com/vinhphuoc/airbnb-clone
+      local-prefixes:
+        - github.com/my/project
+
+# -----------------------------------------------------------------------------
+# Issues — cách golangci-lint report lỗi
+# -----------------------------------------------------------------------------
+issues:
+  # Cho phép hiện nhiều lỗi giống nhau hơn (mặc định chỉ 3, dễ bị bỏ sót)
+  max-same-issues: 50
+
+# -----------------------------------------------------------------------------
+# Linters — bộ linter chính
+# -----------------------------------------------------------------------------
+linters:
+  # "standard" bật các linter mà team golangci-lint khuyến nghị
+  default: standard
+
+  enable:
+    # -------------------------------------------------------
+    # BẮT BUG — những linter giúp phát hiện lỗi thực sự
+    # -------------------------------------------------------
+    - bodyclose         # kiểm tra HTTP response body có được Close() không
+    - durationcheck     # bắt lỗi nhân 2 duration với nhau (time.Second * time.Second)
+    - errcheck          # BẮT BUỘC: kiểm tra error có được handle không
+    - errorlint         # bắt lỗi wrap/unwrap error sai cách (Go 1.13+)
+    - govet             # "go vet" nâng cao — bắt bug mà compiler bỏ qua
+    - makezero          # bắt lỗi khai báo slice có length > 0 rồi append (gây duplicate)
+    - nilerr            # bắt trường hợp check err != nil nhưng lại return nil
+    - noctx             # bắt HTTP request không truyền context.Context
+    - rowserrcheck      # kiểm tra sql.Rows.Err() có được check không
+    - sqlclosecheck     # kiểm tra sql.Rows và sql.Stmt có được Close() không
+    - staticcheck       # "go vet on steroids" — phân tích tĩnh cực mạnh
+
+    # -------------------------------------------------------
+    # CODE QUALITY — giữ code sạch, dễ đọc
+    # -------------------------------------------------------
+    - copyloopvar       # bắt copy loop variable (Go 1.22+ đã fix, nhưng vẫn nên bật)
+    - errname           # sentinel error phải prefix "Err", error type phải suffix "Error"
+    - exhaustive        # kiểm tra switch-case có cover hết enum không
+    - goconst           # tìm string lặp lại có thể thay bằng const
+    - gocritic          # tổng hợp nhiều check về bug, performance, style
+    - ineffassign       # bắt gán biến mà không dùng
+    - mirror            # bắt dùng sai bytes/strings pattern
+    - nakedret          # bắt naked return trong function dài
+    - predeclared       # bắt shadow predeclared identifier (new, len, cap...)
+    - unconvert         # bắt type conversion không cần thiết
+    - unparam           # bắt function parameter không dùng
+    - unused            # bắt biến, hằng, function, type không dùng
+    - usestdlibvars     # gợi ý dùng biến/hằng có sẵn trong stdlib
+    - wastedassign      # bắt assignment thừa
+    - whitespace        # bắt khoảng trắng thừa đầu/cuối function
+
+    # -------------------------------------------------------
+    # SECURITY — bảo mật cơ bản
+    # -------------------------------------------------------
+    - gosec             # quét source code tìm vấn đề bảo mật
+
+    # -------------------------------------------------------
+    # STYLE — giữ code đồng nhất trong team
+    # -------------------------------------------------------
+    - revive            # thay thế golint, kiểm tra style và convention
+    - nolintlint        # kiểm tra directive //nolint có hợp lệ không
+
+  # -------------------------------------------------------
+  # NÂNG CAO — bật thêm khi bạn đã quen
+  # (bỏ comment dần khi muốn strict hơn)
+  # -------------------------------------------------------
+  # - cyclop            # kiểm tra cyclomatic complexity
+  # - funlen            # giới hạn số dòng trong function
+  # - gocognit          # kiểm tra cognitive complexity
+  # - gochecknoglobals  # cấm global variable
+  # - gochecknoinits    # cấm init()
+  # - nestif            # bắt if lồng quá sâu
+  # - nonamedreturns    # cấm named return
+  # - testpackage       # bắt buộc dùng package riêng cho test (_test)
+  # - wrapcheck         # bắt buộc wrap error từ external package
+  # - mnd               # bắt magic number (số "thần kỳ" không có tên)
+  # - perfsprint        # gợi ý thay fmt.Sprintf bằng cách nhanh hơn
+  # - exhaustruct       # kiểm tra struct có init đầy đủ field không
+
+  # -------------------------------------------------------
+  # Cấu hình chi tiết cho từng linter
+  # -------------------------------------------------------
+  settings:
+    errcheck:
+      # Bắt cả type assertion không check: a := b.(MyStruct)
+      check-type-assertions: true
+
+    exhaustive:
+      # Kiểm tra cả switch và map
+      check:
+        - switch
+        - map
+
+    gocritic:
+      settings:
+        captLocal:
+          paramsOnly: false
+        underef:
+          skipRecvDeref: false
+
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment  # quá strict, bắt sắp xếp field theo memory alignment
+
+    nakedret:
+      # Cấm naked return trong mọi function (0 = mọi kích thước)
+      max-func-lines: 0
+
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+
+    revive:
+      rules:
+        # Bắt buộc tên exported phải có comment
+        - name: exported
+          arguments:
+            - checkPrivateReceivers
+          severity: warning
+
+  # -------------------------------------------------------
+  # Exclusions — bỏ qua một số case phổ biến gây noise
+  # -------------------------------------------------------
+  exclusions:
+    # Bật các preset loại trừ phổ biến để giảm false positive
+    presets:
+      - comments              # bỏ qua lỗi liên quan comment format
+      - std-error-handling    # bỏ qua error check cho stdout/stderr/Close...
+      - common-false-positives # bỏ qua các false positive phổ biến
