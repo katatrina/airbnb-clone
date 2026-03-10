@@ -34,26 +34,12 @@ CREATE TABLE listings
 
 -- Pagination & filtering
 CREATE INDEX idx_listings_status_created_at
-    ON listings (status, created_at DESC)
-    WHERE deleted_at IS NULL;
-
--- Count queries
-CREATE INDEX idx_listings_status_deleted_at
-    ON listings (status)
-    WHERE deleted_at IS NULL;
-
--- Location-based queries
-CREATE INDEX idx_listings_province
-    ON listings (province_code, status)
-    WHERE deleted_at IS NULL;
-
-CREATE INDEX idx_listings_district
-    ON listings (district_code, status)
+    ON listings (status, created_at)
     WHERE deleted_at IS NULL;
 
 -- Host's listings
 CREATE INDEX idx_listings_host
-    ON listings (host_id, status)
+    ON listings (host_id, created_at)
     WHERE deleted_at IS NULL;
 
 COMMIT;
