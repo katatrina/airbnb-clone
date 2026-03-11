@@ -11,3 +11,6 @@ migrate-down:
 
 server:
 	go run ./cmd/api
+
+lint:
+	golangci-lint run ./...

@@ -14,3 +14,6 @@ server:
 
 service-test:
 	go test -v -cover -count=1 ./internal/service
+
+lint:
+	golangci-lint run ./...

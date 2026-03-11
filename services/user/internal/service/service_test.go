@@ -48,7 +48,7 @@ func TestCreateUser(t *testing.T) {
 				Email:       "newuser@example.com",
 				Password:    "strongPassword123",
 			},
-			setupMock: func(mockRepo *MockUserRepository, mockToken *MockTokenMaker) {
+			setupMock: func(mockRepo *MockUserRepository, _ *MockTokenMaker) {
 				mockRepo.On("CheckEmailExists", mock.Anything, "newuser@example.com").
 					Return(false, nil)
 
@@ -77,7 +77,7 @@ func TestCreateUser(t *testing.T) {
 				Email:       "existing@example.com",
 				Password:    "strongPassword123",
 			},
-			setupMock: func(mockRepo *MockUserRepository, mockToken *MockTokenMaker) {
+			setupMock: func(mockRepo *MockUserRepository, _ *MockTokenMaker) {
 				mockRepo.On("CheckEmailExists", mock.Anything, "existing@example.com").
 					Return(true, nil)
 			},
@@ -98,7 +98,7 @@ func TestCreateUser(t *testing.T) {
 				require.Error(t, err)
 				require.Nil(t, user)
 				if tc.expectedErr != nil {
-					assert.ErrorIs(t, err, tc.expectedErr)
+					require.ErrorIs(t, err, tc.expectedErr)
 				}
 			} else {
 				require.NoError(t, err)
@@ -155,7 +155,7 @@ func TestLoginUser(t *testing.T) {
 				Email:    "nonexistent@example.com",
 				Password: "anyPassword",
 			},
-			setupMock: func(mockRepo *MockUserRepository, mockToken *MockTokenMaker) {
+			setupMock: func(mockRepo *MockUserRepository, _ *MockTokenMaker) {
 				mockRepo.On("FindUserByEmail", mock.Anything, "nonexistent@example.com").
 					Return(nil, model.ErrUserNotFound)
 			},
@@ -168,7 +168,7 @@ func TestLoginUser(t *testing.T) {
 				Email:    testEmail,
 				Password: "wrongPassword",
 			},
-			setupMock: func(mockRepo *MockUserRepository, mockToken *MockTokenMaker) {
+			setupMock: func(mockRepo *MockUserRepository, _ *MockTokenMaker) {
 				mockRepo.On("FindUserByEmail", mock.Anything, testEmail).
 					Return(existingUser, nil)
 			},
@@ -224,7 +224,7 @@ func TestLoginUser(t *testing.T) {
 				require.Error(t, err)
 				require.Nil(t, result)
 				if tc.expectedErr != nil {
-					assert.ErrorIs(t, err, tc.expectedErr)
+					require.ErrorIs(t, err, tc.expectedErr)
 				}
 			} else {
 				require.NoError(t, err)

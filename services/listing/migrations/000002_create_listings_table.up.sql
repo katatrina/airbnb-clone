@@ -6,17 +6,17 @@ CREATE TABLE listings
 
     -- Basic Info
     title           TEXT   NOT NULL,
-    description     TEXT,
+    description     TEXT   NOT NULL DEFAULT '',
     price_per_night BIGINT NOT NULL,
     currency        TEXT   NOT NULL DEFAULT 'VND',
 
     -- Location (Denormalized - No FK)
-    province_code TEXT NOT NULL,
-    province_name TEXT NOT NULL,
-    district_code TEXT NOT NULL,
-    district_name TEXT NOT NULL,
-    ward_code     TEXT NOT NULL,
-    ward_name     TEXT NOT NULL,
+    province_code INTEGER NOT NULL,
+    province_name TEXT    NOT NULL,
+    district_code INTEGER NOT NULL,
+    district_name TEXT    NOT NULL,
+    ward_code     INTEGER NOT NULL,
+    ward_name     TEXT    NOT NULL,
     address_detail TEXT NOT NULL,
 
     -- Status

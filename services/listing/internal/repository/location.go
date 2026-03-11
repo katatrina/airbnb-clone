@@ -8,7 +8,7 @@ import (
 	"github.com/katatrina/airbnb-clone/services/listing/internal/model"
 )
 
-func (r *LocationRepository) FindProvinceByCode(ctx context.Context, code string) (*model.Province, error) {
+func (r *LocationRepository) FindProvinceByCode(ctx context.Context, code int32) (*model.Province, error) {
 	query := `
 		SELECT code, full_name, created_at
 		FROM provinces
@@ -27,7 +27,7 @@ func (r *LocationRepository) FindProvinceByCode(ctx context.Context, code string
 	return &province, nil
 }
 
-func (r *LocationRepository) FindDistrictByCode(ctx context.Context, code string) (*model.District, error) {
+func (r *LocationRepository) FindDistrictByCode(ctx context.Context, code int32) (*model.District, error) {
 	query := `
 		SELECT code, full_name, province_code, created_at
 		FROM districts
@@ -46,7 +46,7 @@ func (r *LocationRepository) FindDistrictByCode(ctx context.Context, code string
 	return &district, nil
 }
 
-func (r *LocationRepository) FindWardByCode(ctx context.Context, code string) (*model.Ward, error) {
+func (r *LocationRepository) FindWardByCode(ctx context.Context, code int32) (*model.Ward, error) {
 	query := `
 		SELECT code, full_name, district_code, created_at
 		FROM wards
@@ -68,7 +68,7 @@ func (r *LocationRepository) FindWardByCode(ctx context.Context, code string) (*
 func (r *LocationRepository) ListProvinces(ctx context.Context) ([]model.Province, error) {
 	query := `
 		SELECT code, full_name, created_at
-		FROM provinces 
+		FROM provinces
 		ORDER BY full_name
 	`
 
@@ -81,7 +81,7 @@ func (r *LocationRepository) ListProvinces(ctx context.Context) ([]model.Provinc
 	return provinces, nil
 }
 
-func (r *LocationRepository) ListDistrictsByProvinceCode(ctx context.Context, provinceCode string) ([]model.District, error) {
+func (r *LocationRepository) ListDistrictsByProvinceCode(ctx context.Context, provinceCode int32) ([]model.District, error) {
 	query := `
 		SELECT code, full_name, province_code, created_at
 		FROM districts
@@ -98,7 +98,7 @@ func (r *LocationRepository) ListDistrictsByProvinceCode(ctx context.Context, pr
 	return districts, nil
 }
 
-func (r *LocationRepository) ListWardsByDistrictCode(ctx context.Context, districtCode string) ([]model.Ward, error) {
+func (r *LocationRepository) ListWardsByDistrictCode(ctx context.Context, districtCode int32) ([]model.Ward, error) {
 	query := `
 		SELECT code, full_name, district_code, created_at
 		FROM wards

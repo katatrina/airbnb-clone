@@ -26,11 +26,11 @@ type Listing struct {
 	Description   string          `db:"description"`
 	PricePerNight int64           `db:"price_per_night"`
 	Currency      ListingCurrency `db:"currency"`
-	ProvinceCode  string          `db:"province_code"`
+	ProvinceCode  int32           `db:"province_code"`
 	ProvinceName  string          `db:"province_name"`
-	DistrictCode  string          `db:"district_code"`
+	DistrictCode  int32           `db:"district_code"`
 	DistrictName  string          `db:"district_name"`
-	WardCode      string          `db:"ward_code"`
+	WardCode      int32           `db:"ward_code"`
 	WardName      string          `db:"ward_name"`
 	AddressDetail string          `db:"address_detail"`
 	Status        ListingStatus   `db:"status"`
@@ -54,7 +54,7 @@ func (l *Listing) ValidateForPublish() error {
 		missing = append(missing, "description")
 	}
 
-	if l.ProvinceCode == "" || l.DistrictCode == "" || l.WardCode == "" {
+	if l.ProvinceCode == 0 || l.DistrictCode == 0 || l.WardCode == 0 {
 		missing = append(missing, "address")
 	}
 

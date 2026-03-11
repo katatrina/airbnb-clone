@@ -23,13 +23,13 @@ type ListingRepository interface {
 }
 
 type LocationRepository interface {
-	FindProvinceByCode(ctx context.Context, code string) (*model.Province, error)
-	FindDistrictByCode(ctx context.Context, code string) (*model.District, error)
-	FindWardByCode(ctx context.Context, code string) (*model.Ward, error)
+	FindProvinceByCode(ctx context.Context, code int32) (*model.Province, error)
+	FindDistrictByCode(ctx context.Context, code int32) (*model.District, error)
+	FindWardByCode(ctx context.Context, code int32) (*model.Ward, error)
 
 	ListProvinces(ctx context.Context) ([]model.Province, error)
-	ListDistrictsByProvinceCode(ctx context.Context, provinceCode string) ([]model.District, error)
-	ListWardsByDistrictCode(ctx context.Context, districtCode string) ([]model.Ward, error)
+	ListDistrictsByProvinceCode(ctx context.Context, provinceCode int32) ([]model.District, error)
+	ListWardsByDistrictCode(ctx context.Context, districtCode int32) ([]model.Ward, error)
 }
 
 type ListingService struct {

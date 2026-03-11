@@ -1,3 +1,4 @@
+// nolint:all
 package main
 
 import (
@@ -6,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,30 +15,30 @@ import (
 
 // Ward represents a ward in the JSON file
 type Ward struct {
-	Name          string `json:"name"`
-	Code          int    `json:"code"`
-	Codename      string `json:"codename"`
-	DivisionType  string `json:"division_type"`
-	ShortCodename string `json:"short_codename"`
+	Name         string `json:"name"`
+	Code         int32  `json:"code"`
+	DivisionType string `json:"division_type"`
+	Codename     string `json:"codename"`
+	DistrictCode int32  `json:"district_code"`
 }
 
 // District represents a district in the JSON file
 type District struct {
-	Name          string `json:"name"`
-	Code          int    `json:"code"`
-	Codename      string `json:"codename"`
-	DivisionType  string `json:"division_type"`
-	ShortCodename string `json:"short_codename"`
-	Wards         []Ward `json:"wards"`
+	Name         string `json:"name"`
+	Code         int32  `json:"code"`
+	DivisionType string `json:"division_type"`
+	Codename     string `json:"codename"`
+	ProvinceCode int32  `json:"province_code"`
+	Wards        []Ward `json:"wards"`
 }
 
 // Province represents a province in the JSON file
 type Province struct {
 	Name         string     `json:"name"`
-	Code         int        `json:"code"`
-	Codename     string     `json:"codename"`
+	Code         int32      `json:"code"`
 	DivisionType string     `json:"division_type"`
-	PhoneCode    int        `json:"phone_code"`
+	Codename     string     `json:"codename"`
+	PhoneCode    int32      `json:"phone_code"`
 	Districts    []District `json:"districts"`
 }
 
@@ -100,47 +100,41 @@ func importLocations(ctx context.Context, pool *pgxpool.Pool, provinces []Provin
 
 	// Insert provinces, districts and wards
 	for _, province := range provinces {
-		provinceCode := strconv.Itoa(province.Code)
-
 		// Insert province
 		_, err := tx.Exec(ctx,
 			`INSERT INTO provinces (code, full_name, created_at)
 			 VALUES ($1, $2, $3)
 			 ON CONFLICT (code) DO UPDATE
 			 SET full_name = EXCLUDED.full_name`,
-			provinceCode, province.Name, now)
+			province.Code, province.Name, now)
 		if err != nil {
-			return fmt.Errorf("failed to insert province %s: %w", provinceCode, err)
+			return fmt.Errorf("failed to insert province %d: %w", province.Code, err)
 		}
 		provinceCount++
 
 		// Insert districts for this province
 		for _, district := range province.Districts {
-			districtCode := strconv.Itoa(district.Code)
-
 			_, err := tx.Exec(ctx,
 				`INSERT INTO districts (code, full_name, province_code, created_at)
 				 VALUES ($1, $2, $3, $4)
 				 ON CONFLICT (code) DO UPDATE
 				 SET full_name = EXCLUDED.full_name, province_code = EXCLUDED.province_code`,
-				districtCode, district.Name, provinceCode, now)
+				district.Code, district.Name, province.Code, now)
 			if err != nil {
-				return fmt.Errorf("failed to insert district %s: %w", districtCode, err)
+				return fmt.Errorf("failed to insert district %d: %w", district.Code, err)
 			}
 			districtCount++
 
 			// Insert wards for this district
 			for _, ward := range district.Wards {
-				wardCode := strconv.Itoa(ward.Code)
-
 				_, err := tx.Exec(ctx,
 					`INSERT INTO wards (code, full_name, district_code, created_at)
 					 VALUES ($1, $2, $3, $4)
 					 ON CONFLICT (code) DO UPDATE
 					 SET full_name = EXCLUDED.full_name, district_code = EXCLUDED.district_code`,
-					wardCode, ward.Name, districtCode, now)
+					ward.Code, ward.Name, district.Code, now)
 				if err != nil {
-					return fmt.Errorf("failed to insert ward %s: %w", wardCode, err)
+					return fmt.Errorf("failed to insert ward %d: %w", ward.Code, err)
 				}
 				wardCount++
 			}

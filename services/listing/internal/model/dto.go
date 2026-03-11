@@ -5,9 +5,9 @@ type CreateListingParams struct {
 	Title         string
 	Description   string
 	PricePerNight int64
-	ProvinceCode  string
-	DistrictCode  string
-	WardCode      string
+	ProvinceCode  int32
+	DistrictCode  int32
+	WardCode      int32
 	AddressDetail string
 }
 
@@ -20,11 +20,11 @@ type UpdateListingBasicInfoParams struct {
 type UpdateListingAddressParams struct {
 	ListingID     string
 	HostID        string
-	ProvinceCode  *string
+	ProvinceCode  *int32
 	ProvinceName  *string
-	DistrictCode  *string
+	DistrictCode  *int32
 	DistrictName  *string
-	WardCode      *string
+	WardCode      *int32
 	WardName      *string
 	AddressDetail *string
 }

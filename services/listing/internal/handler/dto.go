@@ -6,9 +6,9 @@ type CreateListingRequest struct {
 	Title         string `json:"title" validate:"required,min=10,max=200" normalize:"trim,singlespace"`
 	Description   string `json:"description" validate:"omitempty,max=2000" normalize:"trim,singlespace"`
 	PricePerNight int64  `json:"pricePerNight" validate:"required,gte=1"`
-	ProvinceCode  string `json:"provinceCode" validate:"required" normalize:"trim"`
-	DistrictCode  string `json:"districtCode" validate:"required" normalize:"trim"`
-	WardCode      string `json:"wardCode" validate:"required" normalize:"trim"`
+	ProvinceCode  int32  `json:"provinceCode" validate:"required"`
+	DistrictCode  int32  `json:"districtCode" validate:"required"`
+	WardCode      int32  `json:"wardCode" validate:"required"`
 	AddressDetail string `json:"addressDetail" validate:"required,min=10,max=500" normalize:"trim,singlespace"`
 }
 
@@ -19,9 +19,9 @@ type UpdateListingBasicInfoRequest struct {
 }
 
 type UpdateListingAddressRequest struct {
-	ProvinceCode  *string `json:"provinceCode" validate:"required_with=DistrictCode WardCode" normalize:"trim"`
-	DistrictCode  *string `json:"districtCode" validate:"required_with=ProvinceCode WardCode" normalize:"trim"`
-	WardCode      *string `json:"wardCode" validate:"required_with=ProvinceCode DistrictCode" normalize:"trim"`
+	ProvinceCode  *int32  `json:"provinceCode" validate:"required_with=DistrictCode WardCode"`
+	DistrictCode  *int32  `json:"districtCode" validate:"required_with=ProvinceCode WardCode"`
+	WardCode      *int32  `json:"wardCode" validate:"required_with=ProvinceCode DistrictCode"`
 	AddressDetail *string `json:"addressDetail" validate:"omitnil,min=10,max=500" normalize:"trim,singlespace"`
 }
 
@@ -31,11 +31,11 @@ type ListingResponse struct {
 	Description   string `json:"description"`
 	PricePerNight int64  `json:"pricePerNight"`
 	Currency      string `json:"currency"`
-	ProvinceCode  string `json:"provinceCode"`
+	ProvinceCode  int32  `json:"provinceCode"`
 	ProvinceName  string `json:"provinceName"`
-	DistrictCode  string `json:"districtCode"`
+	DistrictCode  int32  `json:"districtCode"`
 	DistrictName  string `json:"districtName"`
-	WardCode      string `json:"wardCode"`
+	WardCode      int32  `json:"wardCode"`
 	WardName      string `json:"wardName"`
 	AddressDetail string `json:"addressDetail"`
 	Status        string `json:"status"`
@@ -44,20 +44,20 @@ type ListingResponse struct {
 }
 
 type ProvinceResponse struct {
-	Code     string `json:"code"`
+	Code     int32  `json:"code"`
 	FullName string `json:"fullName"`
 }
 
 type DistrictResponse struct {
-	Code         string `json:"code"`
+	Code         int32  `json:"code"`
 	FullName     string `json:"fullName"`
-	ProvinceCode string `json:"provinceCode"`
+	ProvinceCode int32  `json:"provinceCode"`
 }
 
 type WardResponse struct {
-	Code         string `json:"code"`
+	Code         int32  `json:"code"`
 	FullName     string `json:"fullName"`
-	DistrictCode string `json:"districtCode"`
+	DistrictCode int32  `json:"districtCode"`
 }
 
 func NewListingResponse(listing *model.Listing) *ListingResponse {

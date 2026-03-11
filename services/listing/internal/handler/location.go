@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"log"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/katatrina/airbnb-clone/pkg/response"
@@ -29,7 +30,12 @@ func (h *ListingHandler) ListProvinces(c *gin.Context) {
 }
 
 func (h *ListingHandler) ListDistrictsByProvince(c *gin.Context) {
-	provinceCode := c.Param("code")
+	code, err := strconv.ParseInt(c.Param("code"), 10, 32)
+	if err != nil {
+		response.BadRequest(c, response.CodeValidationFailed, "Invalid province code format")
+		return
+	}
+	provinceCode := int32(code)
 
 	districts, err := h.listingService.ListDistrictsByProvince(c.Request.Context(), provinceCode)
 	if err != nil {
@@ -56,7 +62,12 @@ func (h *ListingHandler) ListDistrictsByProvince(c *gin.Context) {
 }
 
 func (h *ListingHandler) ListWardsByDistrict(c *gin.Context) {
-	districtCode := c.Param("code")
+	code, err := strconv.ParseInt(c.Param("code"), 10, 32)
+	if err != nil {
+		response.BadRequest(c, response.CodeValidationFailed, "Invalid district code format")
+		return
+	}
+	districtCode := int32(code)
 
 	wards, err := h.listingService.ListWardsByDistrict(c.Request.Context(), districtCode)
 	if err != nil {
