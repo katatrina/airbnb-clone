@@ -1,160 +1,160 @@
-# =============================================================================
+---
+# golangci-lint configuration file made by @ccoVeille
+# Source: https://github.com/ccoVeille/golangci-lint-config-examples/
+# Author: @ccoVeille
+# License: MIT
+# Variant: 02-basic
+# Version: v2.0.0
 #
-# golangci-lint v2 — Starter Config cho Junior Go Developer
-#
-# Dựa trên "Golden config" của maratori, nhưng đã giảm bớt độ strict
-# để phù hợp với người mới bắt đầu. Khi bạn đã quen, hãy dần bật thêm
-# các linter được ghi trong phần "NÂNG CAO" bên dưới.
-#
-# Tham khảo Golden config gốc:
-#   https://github.com/maratori/golangci-lint-config
-#
-# Tham khảo tất cả options:
-#   https://github.com/golangci/golangci-lint/blob/HEAD/.golangci.reference.yml
-#
-# =============================================================================
-
 version: "2"
 
-# -----------------------------------------------------------------------------
-# Formatters — tự động format code
-# -----------------------------------------------------------------------------
 formatters:
   enable:
-    - goimports # sắp xếp import đúng chuẩn (stdlib | third-party | local)
+    # format the code with Go standard library
+    - gofmt
 
-  settings:
-    goimports:
-      # ĐỔI LẠI thành module path của project bạn
-      # Ví dụ: github.com/vinhphuoc/airbnb-clone
-      local-prefixes:
-        - github.com/my/project
-
-# -----------------------------------------------------------------------------
-# Issues — cách golangci-lint report lỗi
-# -----------------------------------------------------------------------------
-issues:
-  # Cho phép hiện nhiều lỗi giống nhau hơn (mặc định chỉ 3, dễ bị bỏ sót)
-  max-same-issues: 50
-
-# -----------------------------------------------------------------------------
-# Linters — bộ linter chính
-# -----------------------------------------------------------------------------
 linters:
-  # "standard" bật các linter mà team golangci-lint khuyến nghị
-  default: standard
+  exclusions:
+    # these presets where present in the v1 version of golangci-lint
+    # it's interesting to keep them when migrating, but removing them should be the goal
+    presets:
+      # exclude check on comments format in godoc
+      # These are common false positives in poor code
+      # you should not use this on recent code you write from scratch
+      # More information: https://golangci-lint.run/usage/false-positives/#comments
+      - comments
 
+      # Common false positives
+      # feel free to remove this if you don't have any false positives
+      # More information: https://golangci-lint.run/usage/false-positives/#common-false-positives
+      - common-false-positives
+
+      # Legacy preset is not recommended anymore
+      # More information: https://golangci-lint.run/usage/false-positives/#legacy
+      # - legacy
+
+      # std-error-handling is a set of rules that avoid reporting unhandled errors on common functions/methods
+      # More information: https://golangci-lint.run/usage/false-positives/#std-error-handling
+      - std-error-handling
+
+  # some linters are enabled by default
+  # https://golangci-lint.run/usage/linters/
+  #
+  # enable some extra linters
   enable:
-    # -------------------------------------------------------
-    # BẮT BUG — những linter giúp phát hiện lỗi thực sự
-    # -------------------------------------------------------
-    - bodyclose         # kiểm tra HTTP response body có được Close() không
-    - durationcheck     # bắt lỗi nhân 2 duration với nhau (time.Second * time.Second)
-    - errcheck          # BẮT BUỘC: kiểm tra error có được handle không
-    - errorlint         # bắt lỗi wrap/unwrap error sai cách (Go 1.13+)
-    - govet             # "go vet" nâng cao — bắt bug mà compiler bỏ qua
-    - makezero          # bắt lỗi khai báo slice có length > 0 rồi append (gây duplicate)
-    - nilerr            # bắt trường hợp check err != nil nhưng lại return nil
-    - noctx             # bắt HTTP request không truyền context.Context
-    - rowserrcheck      # kiểm tra sql.Rows.Err() có được check không
-    - sqlclosecheck     # kiểm tra sql.Rows và sql.Stmt có được Close() không
-    - staticcheck       # "go vet on steroids" — phân tích tĩnh cực mạnh
+    # Errcheck is a program for checking for unchecked errors in Go code.
+    - errcheck
 
-    # -------------------------------------------------------
-    # CODE QUALITY — giữ code sạch, dễ đọc
-    # -------------------------------------------------------
-    - copyloopvar       # bắt copy loop variable (Go 1.22+ đã fix, nhưng vẫn nên bật)
-    - errname           # sentinel error phải prefix "Err", error type phải suffix "Error"
-    - exhaustive        # kiểm tra switch-case có cover hết enum không
-    - goconst           # tìm string lặp lại có thể thay bằng const
-    - gocritic          # tổng hợp nhiều check về bug, performance, style
-    - ineffassign       # bắt gán biến mà không dùng
-    - mirror            # bắt dùng sai bytes/strings pattern
-    - nakedret          # bắt naked return trong function dài
-    - predeclared       # bắt shadow predeclared identifier (new, len, cap...)
-    - unconvert         # bắt type conversion không cần thiết
-    - unparam           # bắt function parameter không dùng
-    - unused            # bắt biến, hằng, function, type không dùng
-    - usestdlibvars     # gợi ý dùng biến/hằng có sẵn trong stdlib
-    - wastedassign      # bắt assignment thừa
-    - whitespace        # bắt khoảng trắng thừa đầu/cuối function
+    # Vet examines Go source code and reports suspicious constructs.
+    - govet
 
-    # -------------------------------------------------------
-    # SECURITY — bảo mật cơ bản
-    # -------------------------------------------------------
-    - gosec             # quét source code tìm vấn đề bảo mật
+    # Detects when assignments to existing variables are not used.
+    - ineffassign
 
-    # -------------------------------------------------------
-    # STYLE — giữ code đồng nhất trong team
-    # -------------------------------------------------------
-    - revive            # thay thế golint, kiểm tra style và convention
-    - nolintlint        # kiểm tra directive //nolint có hợp lệ không
+    # It's a set of rules from staticcheck. See https://staticcheck.io/
+    - staticcheck
 
-  # -------------------------------------------------------
-  # NÂNG CAO — bật thêm khi bạn đã quen
-  # (bỏ comment dần khi muốn strict hơn)
-  # -------------------------------------------------------
-  # - cyclop            # kiểm tra cyclomatic complexity
-  # - funlen            # giới hạn số dòng trong function
-  # - gocognit          # kiểm tra cognitive complexity
-  # - gochecknoglobals  # cấm global variable
-  # - gochecknoinits    # cấm init()
-  # - nestif            # bắt if lồng quá sâu
-  # - nonamedreturns    # cấm named return
-  # - testpackage       # bắt buộc dùng package riêng cho test (_test)
-  # - wrapcheck         # bắt buộc wrap error từ external package
-  # - mnd               # bắt magic number (số "thần kỳ" không có tên)
-  # - perfsprint        # gợi ý thay fmt.Sprintf bằng cách nhanh hơn
-  # - exhaustruct       # kiểm tra struct có init đầy đủ field không
+    # Checks Go code for unused constants, variables, functions and types.
+    - unused
 
-  # -------------------------------------------------------
-  # Cấu hình chi tiết cho từng linter
-  # -------------------------------------------------------
+    # Fast, configurable, extensible, flexible, and beautiful linter for Go.
+    # Drop-in replacement of golint.
+    - revive
+
   settings:
-    errcheck:
-      # Bắt cả type assertion không check: a := b.(MyStruct)
-      check-type-assertions: true
-
-    exhaustive:
-      # Kiểm tra cả switch và map
-      check:
-        - switch
-        - map
-
-    gocritic:
-      settings:
-        captLocal:
-          paramsOnly: false
-        underef:
-          skipRecvDeref: false
-
-    govet:
-      enable-all: true
-      disable:
-        - fieldalignment  # quá strict, bắt sắp xếp field theo memory alignment
-
-    nakedret:
-      # Cấm naked return trong mọi function (0 = mọi kích thước)
-      max-func-lines: 0
-
-    nolintlint:
-      require-explanation: true
-      require-specific: true
-
     revive:
       rules:
-        # Bắt buộc tên exported phải có comment
+        # these are the default revive rules
+        # you can remove the whole "rules" node if you want
+        # BUT
+        # ! /!\ they all need to be present when you want to add more rules than the default ones
+        # otherwise, you won't have the default rules, but only the ones you define in the "rules" node
+
+        # Blank import should be only in a main or test package, or have a comment justifying it.
+        - name: blank-imports
+
+        # context.Context() should be the first parameter of a function when provided as argument.
+        - name: context-as-argument
+          arguments:
+            - allowTypesBefore: "*testing.T"
+
+        # Basic types should not be used as a key in `context.WithValue`
+        - name: context-keys-type
+
+        # Importing with `.` makes the programs much harder to understand
+        - name: dot-imports
+
+        # Empty blocks make code less readable and could be a symptom of a bug or unfinished refactoring.
+        - name: empty-block
+
+        # for better readability, variables of type `error` must be named with the prefix `err`.
+        - name: error-naming
+
+        # for better readability, the errors should be last in the list of returned values by a function.
+        - name: error-return
+
+        # for better readability, error messages should not be capitalized or end with punctuation or a newline.
+        - name: error-strings
+
+        # report when replacing `errors.New(fmt.Sprintf())` with `fmt.Errorf()` is possible
+        - name: errorf
+
+        # check naming and commenting conventions on exported symbols.
         - name: exported
           arguments:
-            - checkPrivateReceivers
-          severity: warning
+            # make error messages clearer
+            - "sayRepetitiveInsteadOfStutters"
 
-  # -------------------------------------------------------
-  # Exclusions — bỏ qua một số case phổ biến gây noise
-  # -------------------------------------------------------
-  exclusions:
-    # Bật các preset loại trừ phổ biến để giảm false positive
-    presets:
-      - comments              # bỏ qua lỗi liên quan comment format
-      - std-error-handling    # bỏ qua error check cho stdout/stderr/Close...
-      - common-false-positives # bỏ qua các false positive phổ biến
+        # incrementing an integer variable by 1 is recommended to be done using the `++` operator
+        - name: increment-decrement
+
+        # highlights redundant else-blocks that can be eliminated from the code
+        - name: indent-error-flow
+
+        # This rule suggests a shorter way of writing ranges that do not use the second value.
+        - name: range
+
+        # receiver names in a method should reflect the struct name (p for Person, for example)
+        - name: receiver-naming
+
+        # redefining built in names (true, false, append, make) can lead to bugs very difficult to detect.
+        - name: redefines-builtin-id
+
+        # redundant else-blocks that can be eliminated from the code.
+        - name: superfluous-else
+
+        # prevent confusing name for variables when using `time` package
+        - name: time-naming
+
+        # warns when an exported function or method returns a value of an un-exported type.
+        - name: unexported-return
+
+        # spots and proposes to remove unreachable code. also helps to spot errors
+        - name: unreachable-code
+
+        # Functions or methods with unused parameters can be a symptom of an unfinished refactoring or a bug.
+        - name: unused-parameter
+
+        # report when a variable declaration can be simplified
+        - name: var-declaration
+
+        # warns when initialism, variable or package naming conventions are not followed.
+        - name: var-naming
+
+output:
+  # Order to use when sorting results.
+  # Possible values: `file`, `linter`, and `severity`.
+  #
+  # If the severity values are inside the following list, they are ordered in this order:
+  #   1. error
+  #   2. warning
+  #   3. high
+  #   4. medium
+  #   5. low
+  # Either they are sorted alphabetically.
+  #
+  # Default: ["file"]
+  sort-order:
+    - linter
+    - severity
+    - file # filepath, line, and column.
