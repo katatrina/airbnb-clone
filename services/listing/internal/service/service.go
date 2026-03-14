@@ -5,7 +5,6 @@ import (
 
 	"github.com/katatrina/airbnb-clone/pkg/token"
 	"github.com/katatrina/airbnb-clone/services/listing/internal/model"
-	"github.com/katatrina/airbnb-clone/services/listing/internal/repository"
 )
 
 type ListingRepository interface {
@@ -39,13 +38,13 @@ type ListingService struct {
 }
 
 func NewListingService(
-	listingRepo *repository.ListingRepository,
-	locationRepo *repository.LocationRepository,
+	listingRepo ListingRepository,
+	locationRepo LocationRepository,
 	tokenMaker token.TokenMaker,
 ) *ListingService {
 	return &ListingService{
-		listingRepo:  listingRepo,
-		locationRepo: locationRepo,
-		tokenMaker:   tokenMaker,
+		listingRepo,
+		locationRepo,
+		tokenMaker,
 	}
 }

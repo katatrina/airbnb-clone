@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/katatrina/airbnb-clone/services/booking/internal/model"
-	"github.com/katatrina/airbnb-clone/services/booking/internal/repository"
 )
 
 type ListingInfo struct {
@@ -33,7 +32,7 @@ type BookingService struct {
 }
 
 func NewBookingService(
-	bookingRepo *repository.BookingRepository,
+	bookingRepo BookingRepository,
 	listingClient ListingClient,
 ) *BookingService {
 	return &BookingService{

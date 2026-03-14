@@ -63,4 +63,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/katatrina/airbnb-clone/pkg => ../../pkg
+//replace github.com/katatrina/airbnb-clone/pkg => ../../pkg
